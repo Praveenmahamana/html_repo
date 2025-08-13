@@ -24,56 +24,148 @@
 
 <style>
   body { font-family: 'Inter', sans-serif; }
-	table.dataTable {
-	  border-collapse: collapse !important; /* was 'separate', causes misalignment */
-	  table-layout: fixed;                  /* equal column sizing */
-	  width: 100% !important;
-	  background-color: rgb(24 24 27);
-	  color: rgb(228 228 231);
-	  border-radius: 0.5rem;
-	  overflow: hidden;
-	}
 
-	table.dataTable thead {
-	  background-color: rgb(39 39 42);
-	  color: rgb(161 161 170);
-	}
+  /* Base DataTable styling */
+  table.dataTable {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    background-color: rgb(24 24 27);
+    color: rgb(228 228 231);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  table.dataTable thead {
+    background-color: rgb(39 39 42);
+    color: rgb(161 161 170);
+  }
+  table.dataTable thead th,
+  table.dataTable tbody td {
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+  table.dataTable tbody tr:hover {
+    background-color: rgb(39 39 42) !important;
+  }
+  .dataTables_scrollHeadInner table { margin-bottom: 0 !important; }
 
-	table.dataTable thead th,
-	table.dataTable tbody td {
-	  padding: 8px 10px; /* keep header & body padding same */
-	  white-space: nowrap; 
-	}
+  /* Primary table: fixed layout for perfect alignment */
+  #table1.dataTable { table-layout: fixed; }
 
-	table.dataTable tbody tr:hover {
-	  background-color: rgb(39 39 42) !important;
-	}
+  /* Secondary + third tables: auto layout + ellipsis */
+  #tbl-fl.dataTable, #tbl-ms.dataTable, #tbl-cn.dataTable, #tbl-third.dataTable {
+    table-layout: auto;
+    white-space: nowrap;
+  }
+  #tbl-fl.dataTable td, #tbl-ms.dataTable td, #tbl-cn.dataTable td, #tbl-third.dataTable td {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-	/* Fix extra space in header when scroll is enabled */
-	.dataTables_scrollHeadInner table {
-	  margin-bottom: 0 !important;
-	}
+  /* DataTables UI elements in dark mode */
+  .dataTables_wrapper .dataTables_filter input {
+    background-color: rgb(24 24 27);
+    border: 1px solid rgb(63 63 70);
+    color: rgb(228 228 231);
+    padding: 4px;
+    border-radius: 0.25rem;
+  }
+  .dataTables_wrapper .dataTables_length select {
+    background-color: rgb(24 24 27);
+    border: 1px solid rgb(63 63 70);
+    color: rgb(228 228 231);
+    border-radius: 0.25rem;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button {
+    background-color: rgb(39 39 42) !important;
+    border: 1px solid rgb(63 63 70) !important;
+    color: rgb(228 228 231) !important;
+    border-radius: 0.25rem;
+    padding: 2px 6px;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: rgb(59 130 246) !important;
+    color: white !important;
+  }
+  .dt-button {
+    background-color: rgb(59 130 246) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 0.25rem !important;
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+  }
 
-  .dataTables_wrapper .dataTables_filter input { background-color: rgb(24 24 27); border: 1px solid rgb(63 63 70); color: rgb(228 228 231); padding: 4px; border-radius: 0.25rem;}
-  .dataTables_wrapper .dataTables_length select { background-color: rgb(24 24 27); border: 1px solid rgb(63 63 70); color: rgb(228 228 231); border-radius: 0.25rem;}
-  .dataTables_wrapper .dataTables_paginate .paginate_button { background-color: rgb(39 39 42) !important; border: 1px solid rgb(63 63 70) !important; color: rgb(228 228 231) !important; border-radius: 0.25rem; padding: 2px 6px;}
-  .dataTables_wrapper .dataTables_paginate .paginate_button.current { background-color: rgb(59 130 246) !important; color: white !important;}
-  .dt-button { background-color: rgb(59 130 246) !important; border: none !important; color: white !important; border-radius: 0.25rem !important; padding: 4px 8px !important; font-size: 0.75rem !important;}
-  .info-tile { width: 104px; height: 35px; display: grid; grid-template-rows: 1fr 2fr 1fr; grid-template-columns: 1fr 1fr 1fr; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); padding: 4px; box-sizing: border-box;}
-  .info-tile .top-left { grid-row: 1; grid-column: 1; font-size: 0.45rem; color: rgb(148 163 184); align-self: start; justify-self: start;}
-  .info-tile .top-center { grid-row: 1; grid-column: 2; font-size: 0.5rem; font-weight: bold; align-self: start; justify-self: center;}
-  .info-tile .top-right { grid-row: 1; grid-column: 3; font-size: 0.45rem; color: rgb(148 163 184); align-self: start; justify-self: end;}
-  .info-tile .center { grid-row: 2; grid-column: 1 / span 3; font-weight: 600; font-size: 0.65rem; color: rgb(226 232 240); text-align: center;}
-  .info-tile .bottom-row { grid-row: 3; grid-column: 1 / span 3;}
+  /* Info tile styles */
+  .info-tile {
+    width: 104px;
+    height: 35px;
+    display: grid;
+    grid-template-rows: 1fr 2fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 4px;
+    box-sizing: border-box;
+  }
+  .info-tile .top-left {
+    grid-row: 1;
+    grid-column: 1;
+    font-size: 0.45rem;
+    color: rgb(148 163 184);
+    align-self: start;
+    justify-self: start;
+  }
+  .info-tile .top-center {
+    grid-row: 1;
+    grid-column: 2;
+    font-size: 0.5rem;
+    font-weight: bold;
+    align-self: start;
+    justify-self: center;
+  }
+  .info-tile .top-right {
+    grid-row: 1;
+    grid-column: 3;
+    font-size: 0.45rem;
+    color: rgb(148 163 184);
+    align-self: start;
+    justify-self: end;
+  }
+  .info-tile .center {
+    grid-row: 2;
+    grid-column: 1 / span 3;
+    font-weight: 600;
+    font-size: 0.65rem;
+    color: rgb(226 232 240);
+    text-align: center;
+  }
+  .info-tile .bottom-row {
+    grid-row: 3;
+    grid-column: 1 / span 3;
+  }
 </style>
 </head>
+
 <body class="dark bg-zinc-900 text-zinc-600 p-4">
 
 <div class="bg-zinc-900 p-1 rounded-lg shadow mb-1 flex gap-4 flex-wrap">
-  <label class="cursor-pointer"><span class="px-5 py-0.5 bg-blue-300 text-white rounded">KPI</span><input type="file" id="file1" accept=".csv" hidden></label>
-  <label class="cursor-pointer"><span class="px-5 py-0.5 bg-purple-400 text-white rounded">MS</span><input type="file" id="file2" accept=".csv" hidden></label>
-  <label class="cursor-pointer"><span class="px-5 py-0.5 bg-green-400 text-white rounded">FL</span><input type="file" id="file3" accept=".csv" hidden></label>
-  <label class="cursor-pointer"><span class="px-5 py-0.5 bg-pink-900 text-white rounded">CNX</span><input type="file" id="file4" accept=".csv" hidden></label>
+  <label class="cursor-pointer">
+    <span class="px-5 py-0.5 bg-blue-300 text-white rounded">KPI</span>
+    <input type="file" id="file1" accept=".csv" hidden>
+  </label>
+  <label class="cursor-pointer">
+    <span class="px-5 py-0.5 bg-purple-400 text-white rounded">MS</span>
+    <input type="file" id="file2" accept=".csv" hidden>
+  </label>
+  <label class="cursor-pointer">
+    <span class="px-5 py-0.5 bg-green-400 text-white rounded">FL</span>
+    <input type="file" id="file3" accept=".csv" hidden>
+  </label>
+  <label class="cursor-pointer">
+    <span class="px-5 py-0.5 bg-pink-900 text-white rounded">CNX</span>
+    <input type="file" id="file4" accept=".csv" hidden>
+  </label>
 </div>
 
 <div class="bg-zinc-900 p-3 rounded-lg shadow mb-6">
@@ -89,15 +181,32 @@
     </nav>
   </div>
   <div id="tab-content">
-    <div id="tab-fl" class="tab-panel"><table id="tbl-fl" class="display w-full"></table></div>
-    <div id="tab-ms" class="tab-panel hidden"><table id="tbl-ms" class="display w-full"></table></div>
-    <div id="tab-cn" class="tab-panel hidden"><table id="tbl-cn" class="display w-full"></table></div>
+    <div id="tab-fl" class="tab-panel">
+      <table id="tbl-fl" class="display w-full"></table>
+
+      <!-- Third table (appears after clicking an OD pill) -->
+      <div id="third-table-container" class="mt-4 hidden">
+        <h3 class="text-white mb-2">Third Table (Filtered by OD)</h3>
+        <table id="tbl-third" class="display w-full"></table>
+      </div>
+    </div>
+
+    <div id="tab-ms" class="tab-panel hidden">
+      <table id="tbl-ms" class="display w-full"></table>
+    </div>
+    <div id="tab-cn" class="tab-panel hidden">
+      <table id="tbl-cn" class="display w-full"></table>
+    </div>
   </div>
 </div>
 
 <script>
-let table1, msfvaData=[], flowfvaData=[], connfvaData=[];
-const pillColorMap=new Map();
+/* ---------- globals ---------- */
+let table1, msfvaData = [], flowfvaData = [], connfvaData = [];
+let lastClickedOD = '';
+
+/* ---------- helpers ---------- */
+const pillColorMap = new Map();
 function pillColor(v){
   if(!pillColorMap.has(v)){
     const h=[...String(v)].reduce((a,b)=>((a<<5)-a+b.charCodeAt(0))&0x7fffffff,0);
@@ -107,25 +216,34 @@ function pillColor(v){
   return pillColorMap.get(v);
 }
 
-/* ---------- table helper ---------- */
-function initTable(id,data,cols,hidden=[],page=10){
-  const $tbl=$(`#${id}`);
-  if($.fn.dataTable.isDataTable($tbl)) $tbl.DataTable().destroy();
-  $tbl.empty();
-return $tbl.DataTable({
-  data,
-  columns: cols.map(c => ({ ...c, visible: !hidden.includes(c.data) })),
-  pageLength: page,
-  dom: 'Bfrtip',
-  buttons: ['copyHtml5', 'excelHtml5', 'csvHtml5'],
-  scrollX: true,
-  autoWidth: false,     // stops DT from recalculating separate widths
-  fixedHeader: true,    // optional but keeps header aligned
-  drawCallback: function () {
-    this.api().columns.adjust(); // re-align after every draw
-  }
-});
+function htmlEsc(s){
+  return String(s ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
 
+/* DataTables init wrapper */
+function initTable(id, data, cols, hidden = [], page = 10) {
+  const $tbl = $(`#${id}`);
+  if ($.fn.dataTable.isDataTable($tbl)) $tbl.DataTable().destroy();
+  $tbl.empty();
+
+  const isPrimary = (id === 'table1');
+
+  return $tbl.DataTable({
+    data,
+    columns: cols.map(c => ({ ...c, visible: !hidden.includes(c.data) })),
+    pageLength: page,
+    dom: 'Bfrtip',
+    buttons: ['copyHtml5', 'excelHtml5', 'csvHtml5'],
+    scrollX: true,
+    autoWidth: !isPrimary,
+    fixedHeader: isPrimary,   // noop if plugin not loaded
+    drawCallback: function () { this.api().columns.adjust(); }
+  });
 }
 
 /* safe number helpers */
@@ -134,7 +252,7 @@ const num = v => {
   return isNaN(x) ? 0 : x;
 };
 const pct = v => {
-  const x = parseFloat(String(v).replace('%',''));
+  const x = parseFloat(String(v).toString().replace('%',''));
   return isNaN(x) ? 0 : x;
 };
 
@@ -144,7 +262,7 @@ function loadFirstTable(file){
     const rows=r.data.filter(x=>Object.values(x).some(v=>v!=='' && v!=null));
     if(!rows.length){alert('Empty CSV');return;}
 
-    const whitelist=[];
+    const whitelist=[]; // (keep all real cols hidden by default)
     const hiddenCols=Object.keys(rows[0]).filter(k=>!whitelist.includes(k));
     const cols=[];
 
@@ -163,7 +281,7 @@ function loadFirstTable(file){
         let arrow='➡️',arrowColor='text-yellow-400';
         if(bucket.startsWith('1.')){arrow='⬆️';arrowColor='text-green-500';}
         else if(bucket.startsWith('3.')){arrow='⬇️';arrowColor='text-red-500';}
-        return `<div class="info-tile" style="background:${bgLight};border-color:${bg};" onclick="filterSecondary('Route/Leg','${esc(route).replace(/'/g,"\\'")}')">
+        return `<div class="info-tile" style="background:${bgLight};border-color:${bg};" onclick="filterSecondary('Route/Leg','${esc(route).replace(/'/g,'\\&#39;')}')">
                   <div class="top-left">${esc(left)}</div>
                   <div class="top-center ${arrowColor}">${arrow}</div>
                   <div class="top-right">${esc(right)}</div>
@@ -172,7 +290,7 @@ function loadFirstTable(file){
       }
     });
 
-    /* Tile 2: KPI Checks – exact look from index3_patched */
+    /* Tile 2: KPI Checks */
     cols.push({
       title:'KPI Checks',data:null,orderable:false,
       render:(d,t,row)=>{
@@ -189,29 +307,25 @@ function loadFirstTable(file){
     });
 
     /* Tile 3: Pax/week */
-cols.push({
-  title: 'Pax/week', data: null, orderable: false,
-  render: (data, type, row) => {
-    const pdd = parseFloat(row['PDD_Total_pax/week']) || 0;
-    const apm = parseFloat(row['APM_Total_pax/week']) || 0;
-    const diffPct = pdd ? ((apm - pdd) / pdd) * 100 : 0;
-    
-    // Format the percentage values to show as percentages
-    const pddPercent = (pdd).toFixed(0);
-    const apmPercent = (apm).toFixed(0);
-    const diffPercent = diffPct.toFixed(2);
-    
-    const arrow = diffPct >= 0 ? '🔼' : '🔽';
-    const color = diffPct >= 0 ? 'text-green-500' : 'text-red-500';
-    
-    return `<div class="info-tile" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.2);">
-              <div class="top-left text-xs">${pddPercent}</div>
-              <div class="top-center ${color}">${arrow}</div>
-              <div class="top-right text-xs">${apmPercent}</div>
-              <div class="center ${color}">${diffPercent}%</div>
-            </div>`;
-  }
-});
+    cols.push({
+      title: 'Pax/week', data: null, orderable: false,
+      render: (data, type, row) => {
+        const pdd = parseFloat(row['PDD_Total_pax/week']) || 0;
+        const apm = parseFloat(row['APM_Total_pax/week']) || 0;
+        const diffPct = pdd ? ((apm - pdd) / pdd) * 100 : 0;
+        const pddDisp = (pdd).toFixed(0);
+        const apmDisp = (apm).toFixed(0);
+        const diffDisp = diffPct.toFixed(2);
+        const arrow = diffPct >= 0 ? '🔼' : '🔽';
+        const color = diffPct >= 0 ? 'text-green-500' : 'text-red-500';
+        return `<div class="info-tile" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.2);">
+                  <div class="top-left text-xs">${pddDisp}</div>
+                  <div class="top-center ${color}">${arrow}</div>
+                  <div class="top-right text-xs">${apmDisp}</div>
+                  <div class="center ${color}">${diffDisp}%</div>
+                </div>`;
+      }
+    });
 
     /* Tile 4: Flow/week */
     cols.push({
@@ -249,20 +363,16 @@ cols.push({
       }
     });
 
-    /* Tile 6: Flow% */
+    /* Tile 6: Flow% (fix: read % directly, no extra *100) */
     cols.push({
       title:'Flow%',data:null,orderable:false,
       render:(d,t,row)=>{
-        const pdd = parseFloat(row['Flow_PDD%'])*100 || 0;
-        const apm = parseFloat(row['Flow_APM%'])*100 || 0;
-        // Convert decimal to percentage
-        const pddPercent = (pdd * 100).toFixed(4);
-        const apmPercent = (apm * 100).toFixed(4);	
-
-        const signed=apm-pdd;
-        const diff=Math.abs(signed);
-        const arrow=signed>=0?'🔼':'🔽';
-        const color=signed>=0?'text-green-500':'text-red-500';
+        const pdd = pct(row['Flow_PDD%']);
+        const apm = pct(row['Flow_APM%']);
+        const signed = apm - pdd;
+        const diff = Math.abs(signed);
+        const arrow = signed >= 0 ? '🔼' : '🔽';
+        const color = signed >= 0 ? 'text-green-500' : 'text-red-500';
         return `<div class="info-tile" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.2);">
                   <div class="top-left text-xs">${pdd.toFixed(2)}%</div>
                   <div class="top-center ${color}">${arrow}</div>
@@ -273,39 +383,33 @@ cols.push({
     });
 
     /* Tile 7: Load Factor */
-cols.push({
-  title:'Load Factor',data:null,orderable:false,
-  render:(d,t,row)=>{
-    const pdd = parseFloat(row['PLF_PDD%']) || 0;
-    const apm = parseFloat(row['PLF_APM%']) || 0;
-    
-    // Convert decimal to percentage
-    const pddPercent = (pdd * 100).toFixed(2);
-    const apmPercent = (apm * 100).toFixed(2);
-    
-    const diff = apm - pdd;
-    const arrow = diff >= 0 ? '🔼' : '🔽';
-    const color = diff >= 0 ? 'text-green-500' : 'text-red-500';
-    
-    return `<div class="info-tile" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.2);">
-              <div class="top-left text-xs">${pddPercent}%</div>
-              <div class="top-center ${color}">${arrow}</div>
-              <div class="top-right text-xs">${apmPercent}%</div>
-              <div class="center ${color}">${(diff * 100).toFixed(2)}%</div>
-            </div>`;
-  }
-});
+    cols.push({
+      title:'Load Factor',data:null,orderable:false,
+      render:(d,t,row)=>{
+        const pdd = pct(row['PLF_PDD%']);  // treat as %
+        const apm = pct(row['PLF_APM%']);
+        const diff = apm - pdd;
+        const arrow = diff >= 0 ? '🔼' : '🔽';
+        const color = diff >= 0 ? 'text-green-500' : 'text-red-500';
+        return `<div class="info-tile" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.2);">
+                  <div class="top-left text-xs">${pdd.toFixed(2)}%</div>
+                  <div class="top-center ${color}">${arrow}</div>
+                  <div class="top-right text-xs">${apm.toFixed(2)}%</div>
+                  <div class="center ${color}">${(Math.abs(diff)).toFixed(2)}%</div>
+                </div>`;
+      }
+    });
 
-    /* add real columns (hidden) so DataTables has them */
+    /* Add real columns (hidden) so DataTables has them */
     Object.keys(rows[0]).forEach(k=>{
       cols.push({title:k,data:k});
     });
 
-    table1=initTable('table1',rows,cols,hiddenCols,10);
+    table1 = initTable('table1', rows, cols, hiddenCols, 10);
   }});
 }
 
-/* ---------- load secondary tables ---------- */
+/* ---------- load secondary CSVs ---------- */
 function loadSecondTable(file,type){
   Papa.parse(file,{header:true,skipEmptyLines:true,complete(r){
     const rows=r.data.filter(x=>Object.values(x).some(v=>v!=='' && v!=null));
@@ -320,6 +424,8 @@ function filterSecondary(col,val){
   updateSecondary(msfvaData,'tbl-ms',col,val,'ms');
   updateSecondary(flowfvaData,'tbl-fl',col,val,'fl');
   updateSecondary(connfvaData,'tbl-cn',col,val,'cn');
+
+  // Switch to first non-empty tab after filtering
   setTimeout(()=>{
     const hasMs=$.fn.dataTable.isDataTable('#tbl-ms') ? $('#tbl-ms').DataTable().data().count()>0 : false;
     const hasFl=$.fn.dataTable.isDataTable('#tbl-fl') ? $('#tbl-fl').DataTable().data().count()>0 : false;
@@ -359,8 +465,57 @@ function updateSecondary(src,tblId,col,val,type){
     });
   }
 
-  const cols = Object.keys(src[0]||{}).map(k=>({title:k,data:k}));
-  initTable(tblId,rows,cols,[],10);
+  let cols;
+  if(type==='fl'){
+    // hide these columns in FlowFVA
+    const hiddenSet = new Set(['leg_op_aln','leg_OD','leg_entity','leg_mkt_aln','od_entity'].map(s=>s.toLowerCase()));
+    cols = Object.keys(src[0] || {}).map(k=>{
+      const lower = k.toLowerCase();
+      if(lower === 'od'){
+        return {
+          title: 'OD',
+          data: k,
+          render: (data) => {
+            const val = String(data || '').trim();
+            const safe = htmlEsc(val);
+            const bg = pillColor(val);
+            // Use data attribute to avoid quote issues
+            return `<span class="px-2 py-1 rounded-full text-white"
+                       style="background-color:${bg};cursor:pointer"
+                       data-od="${safe}"
+                       onclick="filterThirdTable(this.dataset.od)">${safe}</span>`;
+          }
+        };
+      }
+      return { title: k, data: k, visible: !hiddenSet.has(lower) };
+    });
+  } else {
+    cols = Object.keys(src[0] || {}).map(k=>({title:k,data:k}));
+  }
+
+  initTable(tblId, rows, cols, [], 10);
+}
+
+/* ---------- third table (filtered by OD) ---------- */
+function filterThirdTable(odValue){
+  lastClickedOD = String(odValue || '').trim();
+  const cont = document.getElementById('third-table-container');
+  cont.classList.remove('hidden');
+
+  // Filter FlowFVA rows matching clicked OD (fallback to leg_OD if that's what's present)
+  const filtered = flowfvaData.filter(r => {
+    const od = String(r['OD'] || r['leg_OD'] || '').trim().toUpperCase();
+    return od === lastClickedOD.toUpperCase();
+  });
+
+  // Reuse same hidden set so third table also hides those fields
+  const hiddenSet = new Set(['leg_op_aln','leg_OD','leg_entity','leg_mkt_aln','od_entity'].map(s=>s.toLowerCase()));
+  const cols = Object.keys(flowfvaData[0] || {}).map(k => ({ title: k, data: k, visible: !hiddenSet.has(k.toLowerCase()) }));
+
+  initTable('tbl-third', filtered, cols, [], 10);
+
+  // Ensure we’re on the FlowFVA tab to see the third table
+  document.querySelector('button[data-tab="fl"]').click();
 }
 
 /* ---------- tab switching ---------- */
