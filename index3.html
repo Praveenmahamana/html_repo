@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<title>CSV Dashboard – ShadCN Dark Mode (with Info tile)</title>
+
+<!-- TailwindCSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { darkMode: 'class' }
+</script>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!-- PapaParse -->
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  /* Table style */
+  table.dataTable {
+    border-collapse: separate !important;
+    border-spacing: 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: rgb(24 24 27); /* zinc-900 */
+    color: rgb(228 228 231); /* zinc-200 */
+  }
+  table.dataTable thead {
+    background-color: rgb(39 39 42); /* zinc-800 */
+    color: rgb(161 161 170); /* zinc-400 */
+  }
+  table.dataTable tbody tr:hover {
+    background-color: rgb(39 39 42) !important; /* zinc-800 */
+  }
+  table.dataTable thead .filter-input {
+    background-color: rgb(24 24 27);
+    border: 1px solid rgb(63 63 70);
+    color: rgb(228 228 231);
+    font-size: 0.75rem;
+    padding: 3px;
+    border-radius: 0.25rem;
+    width: 100%;
+  }
+  /* Dark mode DataTables controls */
+  .dataTables_wrapper .dataTables_filter input {
+    background-color: rgb(24 24 27);
+    border: 1px solid rgb(63 63 70);
+    color: rgb(228 228 231);
+    padding: 4px;
+    border-radius: 0.25rem;
+  }
+  .dataTables_wrapper .dataTables_length select {
+    background-color: rgb(24 24 27);
+    border: 1px solid rgb(63 63 70);
+    color: rgb(228 228 231);
+    border-radius: 0.25rem;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button {
+    background-color: rgb(39 39 42) !important;
+    border: 1px solid rgb(63 63 70) !important;
+    color: rgb(228 228 231) !important;
+    border-radius: 0.25rem;
+    padding: 2px 6px;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: rgb(59 130 246) !important; /* blue-500 */
+    color: white !important;
+  }
+  .dt-button {
+    background-color: rgb(59 130 246) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 0.25rem !important;
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* ---------- Info tile styles ---------- */
+	.info-tile {
+	  width: 104px;
+	  height: 76px; /* allows for bar at bottom */
+	  display: grid;
+	  grid-template-rows: 1fr 2fr 1fr; /* bar occupies last row */
+	  grid-template-columns: 1fr 1fr;
+	  border-radius: 8px;
+	  border: 1px solid rgba(255,255,255,0.2);
+	  padding: 4px;
+	  box-sizing: border-box;
+	}
+
+	.info-tile .top-left { grid-row: 1; grid-column: 1; justify-self: start; align-self: start; font-size: 0.65rem; color: rgb(148 163 184); padding-left:6px; }
+	.info-tile .top-right { grid-row: 1; grid-column: 2; justify-self: end; align-self: start; font-size: 0.65rem; color: rgb(148 163 184); padding-right:6px; }
+	.info-tile .center { grid-row: 2; grid-column: 1 / span 2; font-weight: 600; font-size: 0.85rem; color: rgb(226 232 240); text-align: center; }
+
+  .info-clickable { cursor: pointer; }
+  /* small responsive tweak */
+  @media (max-width: 800px) {
+    .info-tile { width: 86px; height: 56px; }
+  }
+</style>
+</head>
+<body class="dark bg-zinc-900 text-zinc-200 p-4">
+
+<!-- File Inputs -->
+<div class="bg-zinc-800 p-3 rounded-lg shadow mb-4 flex gap-4 flex-wrap">
+  <label class="cursor-pointer">
+    <span class="px-3 py-1 bg-blue-600 text-white rounded">KPI CSV</span>
+    <input type="file" id="file1" accept=".csv" hidden>
+  </label>
+  <label class="cursor-pointer">
+    <span class="px-3 py-1 bg-purple-600 text-white rounded">MSFVA CSV</span>
+    <input type="file" id="file2" accept=".csv" hidden>
+  </label>
+  <label class="cursor-pointer">
+    <span class="px-3 py-1 bg-green-600 text-white rounded">FlowFVA CSV</span>
+    <input type="file" id="file3" accept=".csv" hidden>
+  </label>
+  <label class="cursor-pointer">
+    <span class="px-3 py-1 bg-pink-600 text-white rounded">ConnectionsFVA CSV</span>
+    <input type="file" id="file4" accept=".csv" hidden>
+  </label>
+</div>
+
+<!-- Primary Table -->
+<div class="bg-zinc-800 p-3 rounded-lg shadow mb-6">
+  <h2 class="text-lg font-semibold mb-2">Primary Table (KPI)</h2>
+  <table id="table1" class="display w-full"></table>
+</div>
+
+<!-- Secondary Tabs -->
+<div class="bg-zinc-800 p-3 rounded-lg shadow">
+  <div class="border-b border-zinc-700 mb-4">
+    <nav class="flex gap-2" id="secondary-tabs">
+      <button data-tab="ms" class="tab-btn px-3 py-1 rounded bg-blue-600 text-white">MSFVA</button>
+      <button data-tab="fl" class="tab-btn px-3 py-1 rounded hover:bg-zinc-700">FlowFVA</button>
+      <button data-tab="cn" class="tab-btn px-3 py-1 rounded hover:bg-zinc-700">ConnectionsFVA</button>
+    </nav>
+  </div>
+  <div id="tab-content">
+    <div id="tab-ms" class="tab-panel">
+      <table id="tbl-ms" class="display w-full"></table>
+    </div>
+    <div id="tab-fl" class="tab-panel hidden">
+      <table id="tbl-fl" class="display w-full"></table>
+    </div>
+    <div id="tab-cn" class="tab-panel hidden">
+      <table id="tbl-cn" class="display w-full"></table>
+    </div>
+  </div>
+</div>
+
+<script>
+let table1, msfvaData = [], flowfvaData = [], connfvaData = [];
+
+const pillColorMap = new Map();
+function pillColor(v) {
+  if (!pillColorMap.has(v)) {
+    const h = [...String(v)].reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) & 0x7fffffff, 0);
+    const colors = ['#3b82f6', '#a855f7', '#22c55e', '#f97316', '#eab308', '#06b6d4', '#ef4444'];
+    pillColorMap.set(v, colors[h % colors.length]);
+  }
+  return pillColorMap.get(v);
+}
+
+/* Build header with second row for filters */
+function buildHeader(id, titles) {
+  const $t = $(`#${id}`).empty();
+  const $h = $('<thead>');
+  const $hr = $('<tr>');
+  const $fl = $('<tr class="filters">');
+  titles.forEach(t => {
+    $hr.append(`<th>${t}</th>`);
+    $fl.append(`<th><input class="filter-input" placeholder="🔍"></th>`);
+  });
+  $h.append($hr).append($fl);
+  $t.append($h);
+}
+
+/* Initialize DataTable with proper filter binding on the second header row */
+function initTable(id, data, cols, hidden = [], page = 10) {
+  if ($.fn.dataTable.isDataTable(`#${id}`)) $(`#${id}`).DataTable().destroy();
+  buildHeader(id, cols.map(c => c.title));
+  const table = $(`#${id}`).DataTable({
+    data,
+    columns: cols.map(c => ({ ...c, visible: !hidden.includes(c.data) })),
+    pageLength: page,
+    orderCellsTop: true,
+    dom: 'Bfrtip',
+    buttons: ['copyHtml5', 'excelHtml5', 'csvHtml5'],
+    scrollX: true,
+    initComplete() {
+      const api = this.api();
+      // bind inputs in the filters row explicitly
+      $(`#${id} thead tr.filters th input`).each(function (i) {
+        $(this).on('keyup change', function () {
+          if (api.column(i).search() !== this.value) {
+            api.column(i).search(this.value).draw();
+          }
+        });
+      });
+    }
+  });
+  return table;
+}
+
+/* ---------- Loading KPI (primary) table ---------- */
+function loadFirstTable(file) {
+  Papa.parse(file, {
+    header: true, skipEmptyLines: true, complete(r) {
+      const rows = r.data.filter(x => Object.values(x).some(v => v));
+      if (!rows.length) return alert('Empty CSV');
+
+      const hiddenCols = [
+        'DOM/INT', 'HUB', '%Contri_ASK_in_bucket', '%Contri_ASK_in_network',
+        'PDD_Dept/week', 'APM_Dept/week', 'Abs_Dept_Diff_Pct', 'Abs_PLF_Diff_Pct',
+        'PDD_ASK(M)/week', 'APM_ASK(M)/week', 'PDD_Seats/week', 'APM_Seats/week',
+        'Abs_Seats_Diff_Pct', 'HA_Leg_Cntry_Code_Pair'
+      ];
+
+      // Build columns: add synthetic "Info" as first column, then real columns
+      const realKeys = Object.keys(rows[0]);
+      const cols = [];
+
+      // Synthetic Info column (data: null) - builds the periodic tile
+	cols.push({
+	  title: 'Info',
+	  data: null,
+	  orderable: false,
+	  render: (data, type, row) => {
+		const entityCol = row['Route/Leg Entity'] || row['Route/Leg_Entity'] || row['Route_Leg_Entity'] || '';
+		const routeLeg = row['Route/Leg'] || row['HA_Route/Leg_ORG'] || '';
+		const bucket = String(row['Bucket_percentile'] || '').trim();
+		
+		// Split entity into two parts
+		const parts = String(entityCol).split('_');
+		const left = parts[0] || '';
+		const right = parts.slice(1).join('_') || '';
+		
+		// Escape HTML
+		const esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+		
+		// Colors
+		const bg = pillColor(routeLeg);
+		const bgLight = `${bg}33`;
+		
+		// Bar fill and color
+		let fill = 0, barColor = 'bg-red-600';
+		if (bucket.startsWith('1.')) { fill = 100; barColor = 'bg-green-600'; }
+		else if (bucket.startsWith('2.')) { fill = 50; barColor = 'bg-yellow-500'; }
+		
+		return `
+		  <div class="info-tile info-clickable transform transition-transform duration-200 hover:scale-105 hover:shadow-lg"
+			   style="background:${bgLight};border-color:${bg};"
+			   title="${esc(routeLeg)}"
+			   onclick="filterSecondary('Route/Leg','${esc(routeLeg).replace(/'/g, "\\'")}')">
+			<div class="top-left">${esc(left)}</div>
+			<div class="top-right">${esc(right)}</div>
+			<div class="center">${esc(routeLeg)}</div>
+			<div class="col-span-2 w-full px-1 flex items-center h-3">
+			  <div class="w-full h-1.5 bg-zinc-700 rounded overflow-hidden">
+				<div class="${barColor}" style="width:${fill}%; height:100%"></div>
+			  </div>
+			</div>
+		  </div>`;
+	  }
+	});
+
+
+
+      // Add real columns next
+      realKeys.forEach(k => {
+        const col = { title: k, data: k };
+        // keep the pill behaviour for existing route/leg columns too (if you want)
+        if (['Route/Leg Entity', 'Route/Leg', 'HA_Route/Leg_ORG', 'HA_Route/Leg_DST'].includes(k)) {
+          col.render = v => {
+            const safe = String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            return `<span class="pill" style="background:${pillColor(v)}20;color:${pillColor(v)}" onclick="filterSecondary('${k}','${safe.replace(/'/g, "\\'")}')">${safe}</span>`;
+          };
+        }
+        cols.push(col);
+      });
+
+      table1 = initTable('table1', rows, cols, hiddenCols, 10);
+    }
+  });
+}
+
+/* ---------- Loading secondary CSVs ---------- */
+function loadSecondTable(file, type) {
+  Papa.parse(file, { header: true, skipEmptyLines: true, complete(r) {
+    const rows = r.data.filter(x => Object.values(x).some(v => v));
+    if (type === 'MSFVA') msfvaData = rows;
+    if (type === 'FlowFVA') flowfvaData = rows;
+    if (type === 'ConnectionsFVA') connfvaData = rows;
+  }});
+}
+
+/* ---------- Filtering logic (primary -> secondary) ---------- */
+function filterSecondary(col, val) {
+  updateSecondary(msfvaData, 'tbl-ms', col, val, 'ms');
+  updateSecondary(flowfvaData, 'tbl-fl', col, val, 'fl');
+  updateSecondary(connfvaData, 'tbl-cn', col, val, 'cn');
+
+  // auto-switch to the tab that has results (prefer MSFVA)
+  setTimeout(() => {
+    const hasMs = $('#tbl-ms').DataTable().data().count() > 0;
+    const hasFl = $('#tbl-fl').DataTable().data().count() > 0;
+    const hasCn = $('#tbl-cn').DataTable().data().count() > 0;
+    if (hasMs) document.querySelector('button[data-tab="ms"]').click();
+    else if (hasFl) document.querySelector('button[data-tab="fl"]').click();
+    else if (hasCn) document.querySelector('button[data-tab="cn"]').click();
+  }, 50);
+}
+
+function updateSecondary(src, tblId, col, val, type) {
+  if (!src.length) {
+    // initialize empty table structure if not loaded yet
+    if (!$.fn.dataTable.isDataTable('#' + tblId)) {
+      const emptyCols = [{ title: 'No data', data: null }];
+      initTable(tblId, [], emptyCols, [], 10);
+    }
+    return;
+  }
+
+  const targetVal = String(val || '').trim().toUpperCase();
+  let rows;
+
+  if (type === 'ms' || type === 'cn') {
+    rows = src.filter(r => {
+      const concat = (String(r['origin'] || r['ORG'] || r['Origin'] || '')).trim().toUpperCase() +
+                     (String(r['destin'] || r['DST'] || r['Destination'] || '')).trim().toUpperCase();
+      return concat === targetVal;
+    });
+
+    if (type === 'ms') {
+      rows = rows.filter(r => {
+        const od = String(r['origin'] || '') + String(r['destin'] || '');
+        return !od.startsWith('**') && !od.startsWith('*Host') && !od.startsWith('*Others');
+      });
+    }
+
+  } else if (type === 'fl') {
+    rows = src.filter(r => (String(r['leg_OD'] || r['OD'] || '')).trim().toUpperCase() === targetVal);
+  } else {
+    rows = [];
+  }
+
+  const cols = Object.keys(src[0] || {}).map(k => ({ title: k, data: k }));
+  initTable(tblId, rows, cols, [], 10);
+}
+
+/* ---------- Tab switching ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('bg-blue-600', 'text-white'));
+    btn.classList.add('bg-blue-600', 'text-white');
+    document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+  });
+});
+
+/* ---------- Wire file inputs ---------- */
+document.getElementById('file1').addEventListener('change', e => loadFirstTable(e.target.files[0]));
+document.getElementById('file2').addEventListener('change', e => loadSecondTable(e.target.files[0], 'MSFVA'));
+document.getElementById('file3').addEventListener('change', e => loadSecondTable(e.target.files[0], 'FlowFVA'));
+document.getElementById('file4').addEventListener('change', e => loadSecondTable(e.target.files[0], 'ConnectionsFVA'));
+</script>
+
+</body>
+</html>
