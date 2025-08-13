@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Mode KPI Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --dt-row-selected: 40, 167, 69;
+            --dt-row-selected-text: 255, 255, 255;
+            --dt-row-selected-link: 9, 10, 11;
+        }
+        
+        .dark-mode {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        
+        .dark-table {
+            background-color: #1e293b;
+            color: #e2e8f0;
+        }
+        
+        .dark-table thead th {
+            background-color: #334155;
+            color: #f1f5f9;
+        }
+        
+        .dark-table tbody tr {
+            background-color: #1e293b;
+        }
+        
+        .dark-table tbody tr:hover {
+            background-color: #334155;
+        }
+        
+        .dark-table tbody td {
+            border-color: #475569;
+        }
+        
+        .dark-table .dataTables_paginate .paginate_button {
+            color: #e2e8f0 !important;
+            background: #334155 !important;
+            border-color: #475569 !important;
+        }
+        
+        .dark-table .dataTables_paginate .paginate_button:hover {
+            background: #475569 !important;
+        }
+        
+        .dark-table .dataTables_paginate .paginate_button.current {
+            background: #4f46e5 !important;
+            color: white !important;
+        }
+        
+        .dark-table .dataTables_filter input,
+        .dark-table .dataTables_length select {
+            background-color: #334155;
+            color: #e2e8f0;
+            border-color: #475569;
+        }
+        
+        .pill {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-tile {
+            transition: all 0.3s ease;
+        }
+        
+        .info-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .upload-area {
+            border: 2px dashed #4f46e5;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #818cf8;
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+        
+        .tab-active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        
+        .tab-inactive {
+            background-color: #334155;
+            color: #cbd5e1;
+        }
+        
+        .arrow-up {
+            color: #10b981;
+        }
+        
+        .arrow-down {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body class="dark-mode min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">KPI Dashboard</h1>
+            <p class="text-gray-400">Upload CSV files to analyze your data</p>
+        </header>
+
+        <!-- File Upload Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="upload-area rounded-lg p-6 text-center cursor-pointer" id="kpi-upload">
+                <div class="text-indigo-400 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                </div>
+                <h3 class="font-medium text-white mb-1">KPI Data</h3>
+                <p class="text-gray-400 text-sm">Primary metrics table</p>
+                <input type="file" id="kpi-file" class="hidden" accept=".csv">
+            </div>
+            
+            <div class="upload-area rounded-lg p-6 text-center cursor-pointer" id="msfva-upload">
+                <div class="text-green-400 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <h3 class="font-medium text-white mb-1">MSFVA Data</h3>
+                <p class="text-gray-400 text-sm">Secondary analysis table</p>
+                <input type="file" id="msfva-file" class="hidden" accept=".csv">
+            </div>
+            
+            <div class="upload-area rounded-lg p-6 text-center cursor-pointer" id="flowfva-upload">
+                <div class="text-blue-400 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <h3 class="font-medium text-white mb-1">FlowFVA Data</h3>
+                <p class="text-gray-400 text-sm">Flow analysis with OD pills</p>
+                <input type="file" id="flowfva-file" class="hidden" accept=".csv">
+            </div>
+            
+            <div class="upload-area rounded-lg p-6 text-center cursor-pointer" id="connections-upload">
+                <div class="text-purple-400 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+                <h3 class="font-medium text-white mb-1">Connections Data</h3>
+                <p class="text-gray-400 text-sm">Connection analysis table</p>
+                <input type="file" id="connections-file" class="hidden" accept=".csv">
+            </div>
+        </div>
+
+        <!-- KPI Info Tiles -->
+        <div id="kpi-tiles" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4 mb-8 hidden">
+            <!-- Tiles will be generated here -->
+        </div>
+
+        <!-- Primary Table -->
+        <div id="primary-table-container" class="mb-8 hidden">
+            <div class="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-700">
+                    <h2 class="text-xl font-semibold text-white">KPI Data</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="primary-table" class="dark-table w-full"></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Tables Tabs -->
+        <div id="secondary-tables" class="hidden">
+            <div class="flex border-b border-slate-700 mb-4">
+                <button id="flowfva-tab" class="tab-active px-4 py-2 font-medium rounded-t-lg">FlowFVA</button>
+                <button id="msfva-tab" class="tab-inactive px-4 py-2 font-medium rounded-t-lg">MSFVA</button>
+                <button id="connections-tab" class="tab-inactive px-4 py-2 font-medium rounded-t-lg">Connections</button>
+            </div>
+
+            <!-- FlowFVA Table -->
+            <div id="flowfva-table-container" class="bg-slate-800 rounded-lg shadow-lg overflow-hidden mb-8">
+                <div class="px-6 py-4 border-b border-slate-700">
+                    <h2 class="text-xl font-semibold text-white">FlowFVA Data</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="flowfva-table" class="dark-table w-full"></table>
+                </div>
+            </div>
+
+            <!-- MSFVA Table -->
+            <div id="msfva-table-container" class="bg-slate-800 rounded-lg shadow-lg overflow-hidden mb-8 hidden">
+                <div class="px-6 py-4 border-b border-slate-700">
+                    <h2 class="text-xl font-semibold text-white">MSFVA Data</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="msfva-table" class="dark-table w-full"></table>
+                </div>
+            </div>
+
+            <!-- Connections Table -->
+            <div id="connections-table-container" class="bg-slate-800 rounded-lg shadow-lg overflow-hidden mb-8 hidden">
+                <div class="px-6 py-4 border-b border-slate-700">
+                    <h2 class="text-xl font-semibold text-white">Connections Data</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="connections-table" class="dark-table w-full"></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Third Table (Hidden by default) -->
+        <div id="third-table-container" class="bg-slate-800 rounded-lg shadow-lg overflow-hidden hidden">
+            <div class="px-6 py-4 border-b border-slate-700">
+                <h2 class="text-xl font-semibold text-white">FlowFVA Details for <span id="od-value"></span></h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="third-table" class="dark-table w-full"></table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let kpiData = [];
+        let msfvaData = [];
+        let flowfvaData = [];
+        let connectionsData = [];
+        let flowfvaParsedData = [];
+        let currentRouteFilter = null;
+
+        // Utility functions
+        function stringToColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            let color = '#';
+            for (let i = 0; i < 3; i++) {
+                let value = (hash >> (i * 8)) & 0xFF;
+                color += ('00' + value.toString(16)).substr(-2);
+            }
+            return color;
+        }
+
+        function parseNumber(value) {
+            if (typeof value !== 'string') return parseFloat(value) || 0;
+            // Remove commas and percentage signs
+            value = value.replace(/,/g, '').replace(/%/g, '');
+            return parseFloat(value) || 0;
+        }
+
+        function formatPercentage(value) {
+            return isNaN(value) ? '0%' : `${value.toFixed(2)}%`;
+        }
+
+        function formatNumber(value) {
+            if (isNaN(value)) return '0';
+            return value.toLocaleString();
+        }
+
+        // File upload handlers
+        $('#kpi-upload').click(function() {
+            $('#kpi-file').click();
+        });
+
+        $('#msfva-upload').click(function() {
+            $('#msfva-file').click();
+        });
+
+        $('#flowfva-upload').click(function() {
+            $('#flowfva-file').click();
+        });
+
+        $('#connections-upload').click(function() {
+            $('#connections-file').click();
+        });
+
+        $('#kpi-file').change(function(e) {
+            handleFileUpload(e, 'kpi');
+        });
+
+        $('#msfva-file').change(function(e) {
+            handleFileUpload(e, 'msfva');
+        });
+
+        $('#flowfva-file').change(function(e) {
+            handleFileUpload(e, 'flowfva');
+        });
+
+        $('#connections-file').change(function(e) {
+            handleFileUpload(e, 'connections');
+        });
+
+        function handleFileUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    if (type === 'kpi') {
+                        kpiData = results.data;
+                        initKPIDashboard();
+                    } else if (type === 'msfva') {
+                        msfvaData = results.data;
+                        if ($('#secondary-tables').is(':visible')) {
+                            initSecondaryTables();
+                        }
+                    } else if (type === 'flowfva') {
+                        flowfvaData = results.data;
+                        if ($('#secondary-tables').is(':visible')) {
+                            initSecondaryTables();
+                        }
+                    } else if (type === 'connections') {
+                        connectionsData = results.data;
+                        if ($('#secondary-tables').is(':visible')) {
+                            initSecondaryTables();
+                        }
+                    }
+                }
+            });
+        }
+
+        // KPI Dashboard Initialization
+        function initKPIDashboard() {
+            if (kpiData.length === 0) return;
+
+            const firstRow = kpiData[0];
+            const columns = Object.keys(firstRow);
+            
+            // Create KPI tiles (first 7 columns)
+            const kpiTilesContainer = $('#kpi-tiles');
+            kpiTilesContainer.empty();
+            
+            for (let i = 0; i < Math.min(7, columns.length); i++) {
+                const column = columns[i];
+                const value = firstRow[column];
+                let displayValue = value;
+                let isPercentage = false;
+                let isNumber = false;
+                let trend = '';
+                
+                // Try to parse as number
+                const numValue = parseNumber(value);
+                if (!isNaN(numValue)) {
+                    isNumber = true;
+                    if (value.includes('%')) {
+                        isPercentage = true;
+                        displayValue = formatPercentage(numValue);
+                    } else {
+                        displayValue = formatNumber(numValue);
+                    }
+                    
+                    // Determine trend (simplified logic)
+                    if (numValue > 0) {
+                        trend = 'up';
+                    } else if (numValue < 0) {
+                        trend = 'down';
+                    }
+                }
+                
+                const tile = $(`
+                    <div class="info-tile bg-slate-800 rounded-lg shadow-lg p-4 cursor-pointer hover:shadow-xl">
+                        <div class="text-gray-400 text-sm mb-1">${column}</div>
+                        <div class="text-2xl font-bold text-white mb-2">${displayValue}</div>
+                        ${trend ? `<div class="flex items-center text-sm ${trend === 'up' ? 'arrow-up' : 'arrow-down'}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${trend === 'up' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'}" />
+                            </svg>
+                            ${Math.abs(numValue).toFixed(2)}${isPercentage ? '%' : ''}
+                        </div>` : ''}
+                    </div>
+                `);
+                
+                // Add click handler to first tile for filtering
+                if (i === 0) {
+                    tile.click(function() {
+                        currentRouteFilter = value;
+                        filterSecondaryTables(value);
+                        $(this).addClass('ring-2 ring-indigo-500');
+                    });
+                }
+                
+                kpiTilesContainer.append(tile);
+            }
+            
+            kpiTilesContainer.removeClass('hidden');
+            
+            // Initialize primary table
+            initPrimaryTable();
+        }
+
+        function initPrimaryTable() {
+            if (kpiData.length === 0) return;
+            
+            const columns = Object.keys(kpiData[0]).map(key => ({
+                title: key,
+                data: key
+            }));
+            
+            // Destroy existing table if it exists
+            if ($.fn.DataTable.isDataTable('#primary-table')) {
+                $('#primary-table').DataTable().destroy();
+            }
+            
+            $('#primary-table').DataTable({
+                data: kpiData,
+                columns: columns,
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel'
+                ],
+                scrollX: true,
+                pageLength: 10,
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                },
+                initComplete: function() {
+                    // Apply dark mode styles
+                    $('.dataTables_wrapper').addClass('dark-table');
+                }
+            });
+            
+            $('#primary-table-container').removeClass('hidden');
+            
+            // Show secondary tables section
+            $('#secondary-tables').removeClass('hidden');
+            initSecondaryTables();
+        }
+
+        function initSecondaryTables() {
+            initFlowFVATable();
+            initMSFVATable();
+            initConnectionsTable();
+        }
+
+        function initFlowFVATable() {
+            if (flowfvaData.length === 0) return;
+            
+            // Find OD column (assuming it's named 'OD' or contains 'OD')
+            const columns = Object.keys(flowfvaData[0]);
+            let odColumn = columns.find(col => col.toLowerCase().includes('od')) || 'OD';
+            
+            // Process data to add OD pills
+            flowfvaParsedData = flowfvaData.map(row => {
+                return {...row};
+            });
+            
+            const tableColumns = columns.map(key => {
+                if (key === odColumn) {
+                    return {
+                        title: key,
+                        data: key,
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                const color = stringToColor(data);
+                                return `<span class="pill" style="background-color: ${color};" data-od="${data}">${data}</span>`;
+                            }
+                            return data;
+                        }
+                    };
+                }
+                return {
+                    title: key,
+                    data: key,
+                    render: function(data, type, row) {
+                        if (type === 'display') {
+                            const numValue = parseNumber(data);
+                            if (!isNaN(numValue)) {
+                                if (data.includes('%')) {
+                                    return formatPercentage(numValue);
+                                } else {
+                                    return formatNumber(numValue);
+                                }
+                            }
+                        }
+                        return data;
+                    }
+                };
+            });
+            
+            // Destroy existing table if it exists
+            if ($.fn.DataTable.isDataTable('#flowfva-table')) {
+                $('#flowfva-table').DataTable().destroy();
+            }
+            
+            const flowfvaTable = $('#flowfva-table').DataTable({
+                data: flowfvaParsedData,
+                columns: tableColumns,
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel'
+                ],
+                scrollX: true,
+                pageLength: 10,
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                },
+                initComplete: function() {
+                    // Apply dark mode styles
+                    $('.dataTables_wrapper').addClass('dark-table');
+                }
+            });
+            
+            // Add click handler for OD pills
+            $('#flowfva-table').on('click', '.pill', function() {
+                const odValue = $(this).data('od');
+                filterThirdTable(odValue);
+            });
+        }
+
+        function initMSFVATable() {
+            if (msfvaData.length === 0) return;
+            
+            const columns = Object.keys(msfvaData[0]).map(key => ({
+                title: key,
+                data: key,
+                render: function(data, type, row) {
+                    if (type === 'display') {
+                        const numValue = parseNumber(data);
+                        if (!isNaN(numValue)) {
+                            if (data.includes('%')) {
+                                return formatPercentage(numValue);
+                            } else {
+                                return formatNumber(numValue);
+                            }
+                        }
+                    }
+                    return data;
+                }
+            }));
+            
+            // Destroy existing table if it exists
+            if ($.fn.DataTable.isDataTable('#msfva-table')) {
+                $('#msfva-table').DataTable().destroy();
+            }
+            
+            $('#msfva-table').DataTable({
+                data: msfvaData,
+                columns: columns,
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel'
+                ],
+                scrollX: true,
+                pageLength: 10,
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                },
+                initComplete: function() {
+                    // Apply dark mode styles
+                    $('.dataTables_wrapper').addClass('dark-table');
+                }
+            });
+        }
+
+        function initConnectionsTable() {
+            if (connectionsData.length === 0) return;
+            
+            const columns = Object.keys(connectionsData[0]).map(key => ({
+                title: key,
+                data: key,
+                render: function(data, type, row) {
+                    if (type === 'display') {
+                        const numValue = parseNumber(data);
+                        if (!isNaN(numValue)) {
+                            if (data.includes('%')) {
+                                return formatPercentage(numValue);
+                            } else {
+                                return formatNumber(numValue);
+                            }
+                        }
+                    }
+                    return data;
+                }
+            }));
+            
+            // Destroy existing table if it exists
+            if ($.fn.DataTable.isDataTable('#connections-table')) {
+                $('#connections-table').DataTable().destroy();
+            }
+            
+            $('#connections-table').DataTable({
+                data: connectionsData,
+                columns: columns,
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel'
+                ],
+                scrollX: true,
+                pageLength: 10,
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                },
+                initComplete: function() {
+                    // Apply dark mode styles
+                    $('.dataTables_wrapper').addClass('dark-table');
+                }
+            });
+        }
+
+        // Filtering functions
+        function filterSecondaryTables(routeValue) {
+            // Filter FlowFVA table
+            if ($.fn.DataTable.isDataTable('#flowfva-table')) {
+                const flowfvaTable = $('#flowfva-table').DataTable();
+                flowfvaTable.search(routeValue).draw();
+            }
+            
+            // Filter MSFVA table
+            if ($.fn.DataTable.isDataTable('#msfva-table')) {
+                const msfvaTable = $('#msfva-table').DataTable();
+                msfvaTable.search(routeValue).draw();
+            }
+            
+            // Filter Connections table
+            if ($.fn.DataTable.isDataTable('#connections-table')) {
+                const connectionsTable = $('#connections-table').DataTable();
+                connectionsTable.search(routeValue).draw();
+            }
+        }
+
+        function filterThirdTable(odValue) {
+            if (!flowfvaData.length) return;
+            
+            // Filter data by OD value
+            const filteredData = flowfvaData.filter(row => {
+                // Find OD column
+                const columns = Object.keys(row);
+                const odColumn = columns.find(col => col.toLowerCase().includes('od')) || 'OD';
+                return row[odColumn] === odValue;
+            });
+            
+            if (filteredData.length === 0) return;
+            
+            // Set OD value in header
+            $('#od-value').text(odValue);
+            
+            // Get columns from filtered data
+            const columns = Object.keys(filteredData[0]).map(key => ({
+                title: key,
+                data: key,
+                render: function(data, type, row) {
+                    if (type === 'display') {
+                        const numValue = parseNumber(data);
+                        if (!isNaN(numValue)) {
+                            if (data.includes('%')) {
+                                return formatPercentage(numValue);
+                            } else {
+                                return formatNumber(numValue);
+                            }
+                        }
+                    }
+                    return data;
+                }
+            }));
+            
+            // Destroy existing table if it exists
+            if ($.fn.DataTable.isDataTable('#third-table')) {
+                $('#third-table').DataTable().destroy();
+            }
+            
+            // Initialize third table
+            $('#third-table').DataTable({
+                data: filteredData,
+                columns: columns,
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel'
+                ],
+                scrollX: true,
+                pageLength: 10,
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                },
+                initComplete: function() {
+                    // Apply dark mode styles
+                    $('.dataTables_wrapper').addClass('dark-table');
+                }
+            });
+            
+            // Show third table
+            $('#third-table-container').removeClass('hidden');
+        }
+
+        // Tab navigation
+        $('#flowfva-tab').click(function() {
+            $('.tab-active').removeClass('tab-active').addClass('tab-inactive');
+            $(this).removeClass('tab-inactive').addClass('tab-active');
+            $('#flowfva-table-container').removeClass('hidden');
+            $('#msfva-table-container').addClass('hidden');
+            $('#connections-table-container').addClass('hidden');
+        });
+
+        $('#msfva-tab').click(function() {
+            $('.tab-active').removeClass('tab-active').addClass('tab-inactive');
+            $(this).removeClass('tab-inactive').addClass('tab-active');
+            $('#flowfva-table-container').addClass('hidden');
+            $('#msfva-table-container').removeClass('hidden');
+            $('#connections-table-container').addClass('hidden');
+        });
+
+        $('#connections-tab').click(function() {
+            $('.tab-active').removeClass('tab-active').addClass('tab-inactive');
+            $(this).removeClass('tab-inactive').addClass('tab-active');
+            $('#flowfva-table-container').addClass('hidden');
+            $('#msfva-table-container').addClass('hidden');
+            $('#connections-table-container').removeClass('hidden');
+        });
+    </script>
+</body>
+</html>
