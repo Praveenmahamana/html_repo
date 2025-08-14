@@ -279,7 +279,7 @@
     transition: all 0.2s ease;
     cursor: pointer;
     min-height: 42px;
-    width: 70px;
+    width: 140px;
     background: transparent;
   }
   
@@ -298,7 +298,7 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    align-items: flex-left;
+    align-items: flex-end;
   }
   
   .pdd-value {
@@ -321,7 +321,7 @@
   /* KPI Checks tile - more compact */
   .kpi-checks-tile {
     display: flex;
-    gap: 0.45rem;
+    gap: 0.75rem;
     padding: 0.5rem;
     border-radius: 0.5rem;
     transition: all 0.2s ease;
@@ -406,6 +406,7 @@
   .od-pill {
     transition: all 0.2s ease;
     display: inline-block;
+    cursor: pointer;
   }
   
   .od-pill:hover {
@@ -753,6 +754,9 @@ let lastClickedOD = '';
 let currentHostFilter = '';
 let selectedRoute = '';
 let showOnlyFlows = false;
+let filteredMSFVAData = [];
+let filteredConnFVAData = [];
+let filteredFlowFVAData = [];
 
 /* ---------- helpers ---------- */
 const pillColorMap = new Map();
@@ -775,7 +779,7 @@ function htmlEsc(s){
 }
 
 /* DataTables init wrapper */
-function initTable(id, data, cols, hidden = [], page = 10) {
+function initTable(id, data, cols, hidden = [], page = 10, hideSearch = false) {
   const $tbl = $(`#${id}`);
   if ($.fn.dataTable.isDataTable($tbl)) $tbl.DataTable().destroy();
   $tbl.empty();
@@ -786,7 +790,7 @@ function initTable(id, data, cols, hidden = [], page = 10) {
     data,
     columns: cols.map(c => ({ ...c, visible: !hidden.includes(c.data) })),
     pageLength: page,
-    dom: 'frtip',
+    dom: hideSearch ? 'frtip' : 'rtip',
     scrollX: true,
     autoWidth: true,
     fixedHeader: isPrimary,
@@ -830,7 +834,7 @@ function loadFirstTable(file){
         if(bucket.startsWith('1.')) bucketClass = 'bucket-1';
         else if(bucket.startsWith('3.')) bucketClass = 'bucket-3';
         
-        return `<div class="route-tile" onclick="selectRoute('${esc(route).replace(/'/g,'\\&#39;}')}')">
+        return `<div class="route-tile" onclick="selectRouteAndFilter('${esc(route).replace(/'/g,'\\&#39;}')}')">
                   <div class="route-left">
                     <div class="bucket-indicator ${bucketClass}">${esc(bucket)}</div>
                     <div class="entity-value">${esc(left)}_${esc(right)}</div>
@@ -994,16 +998,18 @@ function loadFirstTable(file){
   }});
 }
 
-/* ---------- select route and update flow table ---------- */
-function selectRoute(route) {
+/* ---------- select route and filter all tables ---------- */
+function selectRouteAndFilter(route) {
   selectedRoute = route;
+  lastClickedOD = route;
+  filterAllTablesByOD(route);
   updateRouteFlowTable();
 }
 
 /* ---------- update route flow table ---------- */
 function updateRouteFlowTable() {
   if(!flowfvaData.length || !selectedRoute) {
-    if(!$.fn.dataTable.isDataTable('#route-flow-table')) initTable('route-flow-table',[],[{title:'No data',data:null}],[],10);
+    if(!$.fn.dataTable.isDataTable('#route-flow-table')) initTable('route-flow-table',[],[{title:'No data',data:null}],[],10,true);
     else { const dt=$('#route-flow-table').DataTable(); dt.clear().draw(); }
     return;
   }
@@ -1034,13 +1040,105 @@ function updateRouteFlowTable() {
 
   // Columns to show
   const cols = [
-    { title: 'OD', data: 'OD' },
+    { 
+      title: 'OD', 
+      data: 'OD',
+      render: (data) => {
+        const val = String(data || '').trim();
+        const safe = htmlEsc(val);
+        const bg = pillColor(val);
+        return `<span class="od-pill px-2 py-1 rounded-full text-white text-xs font-medium"
+                   style="background-color:${bg}"
+                   onclick="filterAllTablesByOD('${safe}')">${safe}</span>`;
+      }
+    },
     { title: 'Demand', data: 'demand' },
     { title: 'Traffic', data: 'traffic' },
     { title: 'Actual Traffic', data: 'actual_traffic' }
   ];
 
-  initTable('route-flow-table', filteredRows, cols, [], 10);
+  initTable('route-flow-table', filteredRows, cols, [], 10, true);
+}
+
+/* ---------- filter all tables by OD ---------- */
+function filterAllTablesByOD(odValue) {
+  lastClickedOD = String(odValue || '').trim();
+  
+  // Filter FlowFVA by leg_OD column
+  filteredFlowFVAData = flowfvaData.filter(r=>{
+    const legOD = String(r['leg_OD'] || '').trim().toUpperCase();
+    return legOD === lastClickedOD.toUpperCase();
+  });
+  updateFlowFVATable();
+  
+  // Filter MSFVA by combining origin & destin columns
+  filteredMSFVAData = msfvaData.filter(r=>{
+    const originCols = ['origin', 'ORG', 'Origin'];
+    const destinCols = ['destin', 'DST', 'Destination'];
+    
+    let origin = '';
+    let destin = '';
+    
+    for (const col of originCols) {
+      if (r[col] !== undefined) {
+        origin = String(r[col] || '').trim().toUpperCase();
+        break;
+      }
+    }
+    
+    for (const col of destinCols) {
+      if (r[col] !== undefined) {
+        destin = String(r[col] || '').trim().toUpperCase();
+        break;
+      }
+    }
+    
+    const combined = origin + destin;
+    const combinedWithDash = origin + '-' + destin;
+    
+    return combined === lastClickedOD.toUpperCase() || combinedWithDash === lastClickedOD.toUpperCase();
+  });
+  updateMSFVATable();
+  
+  // Filter ConnectionsFVA by combining origin & destin columns
+  filteredConnFVAData = connfvaData.filter(r=>{
+    const originCols = ['origin', 'ORG', 'Origin'];
+    const destinCols = ['destin', 'DST', 'Destination'];
+    
+    let origin = '';
+    let destin = '';
+    
+    for (const col of originCols) {
+      if (r[col] !== undefined) {
+        origin = String(r[col] || '').trim().toUpperCase();
+        break;
+      }
+    }
+    
+    for (const col of destinCols) {
+      if (r[col] !== undefined) {
+        destin = String(r[col] || '').trim().toUpperCase();
+        break;
+      }
+    }
+    
+    const combined = origin + destin;
+    const combinedWithDash = origin + '-' + destin;
+    
+    return combined === lastClickedOD.toUpperCase() || combinedWithDash === lastClickedOD.toUpperCase();
+  });
+  updateConnectionsFVATable();
+  
+  // Switch to first tab that has data
+  setTimeout(()=>{
+    const hasFl=filteredFlowFVAData.length > 0;
+    const hasMs=filteredMSFVAData.length > 0;
+    const hasCn=filteredConnFVAData.length > 0;
+    
+    if(hasFl) document.querySelector('button[data-tab="fl"]').click();
+    else if(hasMs) document.querySelector('button[data-tab="ms"]').click();
+    else if(hasCn) document.querySelector('button[data-tab="cn"]').click();
+  },50);
 }
 
 /* ---------- load secondary CSVs ---------- */
@@ -1066,6 +1164,11 @@ function loadSecondTable(file,type){
       updateConnectionsFVATable();
     }
     
+    // If this is MSFVA and we're on the MSFVA tab, update the table
+    if(type==='MSFVA' && document.querySelector('button[data-tab="ms"]').classList.contains('active')) {
+      updateMSFVATable();
+    }
+    
     // If this is FlowFVA and we have a selected route, update the route flow table
     if(type==='FlowFVA' && selectedRoute) {
       updateRouteFlowTable();
@@ -1075,17 +1178,19 @@ function loadSecondTable(file,type){
 
 /* ---------- update FlowFVA table with host filter ---------- */
 function updateFlowFVATable() {
-  if(!flowfvaData.length) {
+  let dataToUse = filteredFlowFVAData.length > 0 ? filteredFlowFVAData : [];
+  
+  if(!dataToUse.length) {
     if(!$.fn.dataTable.isDataTable('#tbl-fl')) initTable('tbl-fl',[],[{title:'No data',data:null}],[],10);
     else { const dt=$('#tbl-fl').DataTable(); dt.clear().draw(); }
     return;
   }
 
-  let filteredRows = flowfvaData;
+  let filteredRows = dataToUse;
   
   // Apply host filter if set
   if(currentHostFilter) {
-    filteredRows = flowfvaData.filter(row => {
+    filteredRows = dataToUse.filter(row => {
       const opAln = String(row['leg_op_aln'] || '').trim();
       const mktAln = String(row['leg_mkt_aln'] || '').trim();
       return opAln === currentHostFilter && mktAln === currentHostFilter;
@@ -1099,7 +1204,7 @@ function updateFlowFVATable() {
   ].map(s => s.toLowerCase()));
 
   // Create columns
-  const cols = Object.keys(flowfvaData[0] || {}).map(k => {
+  const cols = Object.keys(dataToUse[0] || {}).map(k => {
     const lower = k.toLowerCase();
     if(lower === 'od'){
       return {
@@ -1110,9 +1215,8 @@ function updateFlowFVATable() {
           const safe = htmlEsc(val);
           const bg = pillColor(val);
           return `<span class="od-pill px-2 py-1 rounded-full text-white text-xs font-medium"
-                     style="background-color:${bg};cursor:pointer"
-                     data-od="${safe}"
-                     onclick="filterThirdTable(this.dataset.od)">${safe}</span>`;
+                     style="background-color:${bg}"
+                     onclick="filterAllTablesByOD('${safe}')">${safe}</span>`;
         }
       };
     }
@@ -1128,137 +1232,72 @@ function updateFlowFVATable() {
 
 /* ---------- update ConnectionsFVA table ---------- */
 function updateConnectionsFVATable() {
-  if(!connfvaData.length) {
+  let dataToUse = filteredConnFVAData.length > 0 ? filteredConnFVAData : [];
+  
+  if(!dataToUse.length) {
     if(!$.fn.dataTable.isDataTable('#tbl-cn')) initTable('tbl-cn',[],[{title:'No data',data:null}],[],10);
     else { const dt=$('#tbl-cn').DataTable(); dt.clear().draw(); }
     return;
   }
 
   // Filter out rows where Svc column has *** or host_ind as ***
-  const filteredRows = connfvaData.filter(row => {
+  const filteredRows = dataToUse.filter(row => {
     const svc = String(row['Svc'] || '').trim();
     const hostInd = String(row['host_ind'] || '').trim();
     return svc !== '***' && hostInd !== '***';
   });
 
-  // Create columns
-  const cols = Object.keys(connfvaData[0] || {}).map(k => ({title:k,data:k}));
+  // Create columns with OD pill
+  const cols = Object.keys(dataToUse[0] || {}).map(k => {
+    if(k.toLowerCase() === 'od') {
+      return {
+        title: k,
+        data: k,
+        render: (data) => {
+          const val = String(data || '').trim();
+          const safe = htmlEsc(val);
+          const bg = pillColor(val);
+          return `<span class="od-pill px-2 py-1 rounded-full text-white text-xs font-medium"
+                     style="background-color:${bg}"
+                     onclick="filterAllTablesByOD('${safe}')">${safe}</span>`;
+        }
+      };
+    }
+    return {title:k,data:k};
+  });
 
   initTable('tbl-cn', filteredRows, cols, [], 10);
 }
 
-/* ---------- secondary filtering ---------- */
-function filterSecondary(col,val){
-  updateSecondary(msfvaData,'tbl-ms',col,val,'ms');
-  updateSecondary(flowfvaData,'tbl-fl',col,val,'fl');
-  updateSecondary(connfvaData,'tbl-cn',col,val,'cn');
-
-  // Switch to first non-empty tab after filtering
-  setTimeout(()=>{
-    const hasMs=$.fn.dataTable.isDataTable('#tbl-ms') ? $('#tbl-ms').DataTable().data().count()>0 : false;
-    const hasFl=$.fn.dataTable.isDataTable('#tbl-fl') ? $('#tbl-fl').DataTable().data().count()>0 : false;
-    const hasCn=$.fn.dataTable.isDataTable('#tbl-cn') ? $('#tbl-cn').DataTable().data().count()>0 : false;
-    if(hasMs) document.querySelector('button[data-tab="ms"]').click();
-    else if(hasFl) document.querySelector('button[data-tab="fl"]').click();
-    else if(hasCn) document.querySelector('button[data-tab="cn"]').click();
-  },50);
-}
-
-function updateSecondary(src,tblId,col,val,type){
-  if(!src.length){
-    if(!$.fn.dataTable.isDataTable('#'+tblId)) initTable(tblId,[],[{title:'No data',data:null}],[],10);
-    else { const dt=$('#'+tblId).DataTable(); dt.clear().draw(); }
+/* ---------- update MSFVA table ---------- */
+function updateMSFVATable() {
+  let dataToUse = filteredMSFVAData.length > 0 ? filteredMSFVAData : [];
+  
+  if(!dataToUse.length) {
+    if(!$.fn.dataTable.isDataTable('#tbl-ms')) initTable('tbl-ms',[],[{title:'No data',data:null}],[],10);
+    else { const dt=$('#tbl-ms').DataTable(); dt.clear().draw(); }
     return;
   }
 
-  const targetVal=String(val||'').trim().toUpperCase();
-  let rows=[];
-
-  if(type==='ms' || type==='cn'){
-    rows = src.filter(r=>{
-      const o = String(r['origin'] || r['ORG'] || r['Origin'] || '').trim().toUpperCase();
-      const d = String(r['destin'] || r['DST'] || r['Destination'] || '').trim().toUpperCase();
-      return (o + d) === targetVal || (o + '-' + d) === targetVal;
-    });
-    if(type==='ms'){
-      rows = rows.filter(r=>{
-        const od = String(r['origin']||'') + String(r['destin']||'');
-        return !od.startsWith('**') && !od.startsWith('*Host') && !od.startsWith('*Others');
-      });
+  const cols = Object.keys(dataToUse[0] || {}).map(k => {
+    if(k.toLowerCase() === 'od') {
+      return {
+        title: k,
+        data: k,
+        render: (data) => {
+          const val = String(data || '').trim();
+          const safe = htmlEsc(val);
+          const bg = pillColor(val);
+          return `<span class="od-pill px-2 py-1 rounded-full text-white text-xs font-medium"
+                     style="background-color:${bg}"
+                     onclick="filterAllTablesByOD('${safe}')">${safe}</span>`;
+        }
+      };
     }
-  } else if(type==='fl'){
-    rows = src.filter(r=>{
-      const od = String(r['leg_OD'] || r['OD'] || '').trim().toUpperCase();
-      return od === targetVal;
-    });
-  }
-
-  let cols;
-  if(type==='fl'){
-    // hide these columns in FlowFVA
-    const hiddenSet = new Set([
-      'leg_op_aln','leg_OD','leg_entity','leg_mkt_aln','od_entity',
-      'tot_pm_demand', 'tot_pm_traffic', 'tot_actual_traffic', 
-      'total_actual_cap', 'histleg_vs_pdd_err_pct', 'only_in_hist'
-    ].map(s=>s.toLowerCase()));
-    
-    cols = Object.keys(src[0] || {}).map(k=>{
-      const lower = k.toLowerCase();
-      if(lower === 'od'){
-        return {
-          title: 'OD',
-          data: k,
-          render: (data) => {
-            const val = String(data || '').trim();
-            const safe = htmlEsc(val);
-            const bg = pillColor(val);
-            // Use data attribute to avoid quote issues
-            return `<span class="od-pill px-2 py-1 rounded-full text-white text-xs font-medium"
-                       style="background-color:${bg};cursor:pointer"
-                       data-od="${safe}"
-                       onclick="filterThirdTable(this.dataset.od)">${safe}</span>`;
-          }
-        };
-      }
-      return { title: k, data: k, visible: !hiddenSet.has(lower) };
-    });
-  } else {
-    cols = Object.keys(src[0] || {}).map(k=>({title:k,data:k}));
-  }
-
-  initTable(tblId, rows, cols, [], 10);
-}
-
-/* ---------- third table (filtered by OD) ---------- */
-function filterThirdTable(odValue){
-  lastClickedOD = String(odValue || '').trim();
-  const cont = document.getElementById('third-table-container');
-  cont.classList.remove('hidden');
-  document.getElementById('od-value').textContent = lastClickedOD;
-
-  // Filter FlowFVA rows matching clicked OD (fallback to leg_OD if that's what's present)
-  const filtered = flowfvaData.filter(r => {
-    const od = String(r['OD'] || r['leg_OD'] || '').trim().toUpperCase();
-    return od === lastClickedOD.toUpperCase();
+    return {title:k,data:k};
   });
 
-  // Reuse same hidden set so third table also hides those fields
-  const hiddenSet = new Set([
-    'leg_op_aln','leg_OD','leg_entity','leg_mkt_aln','od_entity',
-    'tot_pm_demand', 'tot_pm_traffic', 'tot_actual_traffic', 
-    'total_actual_cap', 'histleg_vs_pdd_err_pct', 'only_in_hist'
-  ].map(s=>s.toLowerCase()));
-  
-  const cols = Object.keys(flowfvaData[0] || {}).map(k => ({ 
-    title: k, 
-    data: k, 
-    visible: !hiddenSet.has(k.toLowerCase()) 
-  }));
-
-  initTable('tbl-third', filtered, cols, [], 10);
-
-  // Ensure we’re on the FlowFVA tab to see the third table
-  document.querySelector('button[data-tab="fl"]').click();
+  initTable('tbl-ms', dataToUse, cols, [], 10);
 }
 
 /* ---------- tab switching ---------- */
@@ -1272,13 +1311,12 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.classList.add('bg-blue-600','text-white','active');
     document.getElementById('tab-'+btn.dataset.tab).classList.remove('hidden');
     
-    // If switching to FlowFVA tab, update the table
+    // Update the table based on current filter state
     if(btn.dataset.tab === 'fl') {
       updateFlowFVATable();
-    }
-    
-    // If switching to ConnectionsFVA tab, update the table
-    if(btn.dataset.tab === 'cn') {
+    } else if(btn.dataset.tab === 'ms') {
+      updateMSFVATable();
+    } else if(btn.dataset.tab === 'cn') {
       updateConnectionsFVATable();
     }
   });

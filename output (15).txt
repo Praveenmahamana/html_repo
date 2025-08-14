@@ -24,12 +24,8 @@
 
 <!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <!-- PapaParse -->
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
@@ -76,18 +72,18 @@
     margin-bottom: 0 !important; 
   }
 
-  /* Primary table: fixed layout for perfect alignment */
+  /* Primary table: auto layout for flexible columns */
   #table1.dataTable { 
-    table-layout: fixed; 
+    table-layout: auto; 
   }
 
   /* Secondary + third tables: auto layout + ellipsis */
-  #tbl-fl.dataTable, #tbl-ms.dataTable, #tbl-cn.dataTable, #tbl-third.dataTable {
+  #tbl-fl.dataTable, #tbl-ms.dataTable, #tbl-cn.dataTable, #tbl-third.dataTable, #route-flow-table.dataTable {
     table-layout: auto;
     white-space: nowrap;
   }
   
-  #tbl-fl.dataTable td, #tbl-ms.dataTable td, #tbl-cn.dataTable td, #tbl-third.dataTable td {
+  #tbl-fl.dataTable td, #tbl-ms.dataTable td, #tbl-cn.dataTable td, #tbl-third.dataTable td, #route-flow-table.dataTable td {
     max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -135,21 +131,6 @@
     background-color: rgb(99 102 241) !important;
     color: white !important;
     border-color: rgb(99 102 241) !important;
-  }
-  
-  .dt-button {
-    background-color: rgb(99 102 241) !important;
-    border: none !important;
-    color: white !important;
-    border-radius: 0.375rem !important;
-    padding: 0.375rem 0.75rem !important;
-    font-size: 0.875rem !important;
-    transition: all 0.2s ease;
-  }
-  
-  .dt-button:hover {
-    background-color: rgb(79 70 229) !important;
-    transform: translateY(-1px);
   }
 
   /* Tile styles - no bounding box */
@@ -211,7 +192,7 @@
     color: rgb(254 249 195);
   }
 
-  /* Route tile specific styles */
+  /* Route tile specific styles - no border, transparent background */
   .route-tile {
     display: flex;
     align-items: center;
@@ -221,7 +202,8 @@
     transition: all 0.2s ease;
     cursor: pointer;
     min-height: 42px;
-    width: 140px; /* Wider width */
+    width: 140px;
+    background: transparent;
   }
   
   .route-tile:hover {
@@ -287,7 +269,7 @@
     max-width: 100%;
   }
 
-  /* Two-column tile styles */
+  /* Two-column tile styles - no border */
   .two-column-tile {
     display: flex;
     align-items: center;
@@ -298,6 +280,7 @@
     cursor: pointer;
     min-height: 42px;
     width: 140px;
+    background: transparent;
   }
   
   .two-column-tile:hover {
@@ -335,15 +318,16 @@
     margin-top: 0.125rem;
   }
 
-  /* KPI Checks tile */
+  /* KPI Checks tile - more compact */
   .kpi-checks-tile {
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
     padding: 0.5rem;
     border-radius: 0.5rem;
     transition: all 0.2s ease;
     cursor: pointer;
     min-height: 42px;
+    background: transparent;
   }
   
   .kpi-checks-tile:hover {
@@ -359,16 +343,16 @@
   }
   
   .kpi-label {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     color: rgb(148 163 184);
     text-transform: uppercase;
     letter-spacing: 0.025em;
   }
   
   .kpi-status {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 600;
-    margin-top: 0.25rem;
+    margin-top: 0.125rem;
   }
 
   /* File upload area */
@@ -422,6 +406,7 @@
   .od-pill {
     transition: all 0.2s ease;
     display: inline-block;
+    cursor: pointer;
   }
   
   .od-pill:hover {
@@ -440,8 +425,134 @@
     border-radius: 0.375rem;
   }
 
+  /* Host filter input */
+  .host-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .host-filter input {
+    background-color: rgb(24 24 27);
+    border: 1px solid rgb(63 63 70);
+    color: rgb(228 228 231);
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+    flex: 1;
+    max-width: 200px;
+  }
+  
+  .host-filter input:focus {
+    outline: none;
+    border-color: rgb(99 102 241);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+  }
+
+  /* Toggle switch */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(26px);
+  }
+
+  /* Two-column layout for KPI Overview */
+  .kpi-overview-container {
+    display: flex;
+    gap: 1rem;
+    height: 500px;
+  }
+
+  .kpi-main-table {
+    flex: 3;
+    min-width: 0;
+    overflow: auto;
+  }
+
+  .kpi-flow-table {
+    flex: 2;
+    min-width: 0;
+    overflow: auto;
+  }
+
+  .flow-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .flow-toggle-container span {
+    font-size: 0.875rem;
+    color: rgb(212 212 216);
+  }
+
+  .all-flows {
+    color: rgb(212 212 216);
+  }
+
+  .only-flows {
+    color: white;
+    font-weight: 500;
+  }
+
+  /* Scrollable container for tables */
+  .scrollable-container {
+    overflow: auto;
+    max-height: 450px;
+  }
+
   /* Responsive adjustments */
   @media (max-width: 768px) {
+    .kpi-overview-container {
+      flex-direction: column;
+      height: auto;
+    }
+    
+    .scrollable-container {
+      max-height: none;
+    }
+    
     .route-tile {
       width: 120px;
     }
@@ -477,6 +588,14 @@
     
     .diff-value {
       font-size: 0.75rem;
+    }
+    
+    .kpi-label {
+      font-size: 0.5rem;
+    }
+    
+    .kpi-status {
+      font-size: 0.6rem;
     }
     
     table.dataTable thead th,
@@ -548,8 +667,25 @@
 <!-- Primary Table -->
 <div class="bg-zinc-900 rounded-xl shadow-lg p-4 mb-6">
   <h2 class="text-lg font-semibold text-white mb-3">KPI Overview</h2>
-  <div class="overflow-x-auto">
-    <table id="table1" class="display w-full"></table>
+  <div class="kpi-overview-container">
+    <div class="kpi-main-table">
+      <div class="scrollable-container">
+        <table id="table1" class="display w-full"></table>
+      </div>
+    </div>
+    <div class="kpi-flow-table">
+      <div class="flow-toggle-container">
+        <span class="all-flows">All</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="flow-toggle">
+          <span class="slider"></span>
+        </label>
+        <span class="only-flows">Flows</span>
+      </div>
+      <div class="scrollable-container">
+        <table id="route-flow-table" class="display w-full"></table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -569,6 +705,12 @@
   <!-- Tab Content -->
   <div id="tab-content">
     <div id="tab-fl" class="tab-panel">
+      <!-- Host filter for FlowFVA -->
+      <div class="host-filter">
+        <label for="host-filter-input" class="text-sm text-white">Host:</label>
+        <input type="text" id="host-filter-input" placeholder="Enter host value" class="text-sm">
+        <button id="apply-host-filter" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Apply</button>
+      </div>
       <div class="overflow-x-auto">
         <table id="tbl-fl" class="display w-full"></table>
       </div>
@@ -609,6 +751,12 @@
 /* ---------- globals ---------- */
 let table1, msfvaData = [], flowfvaData = [], connfvaData = [];
 let lastClickedOD = '';
+let currentHostFilter = '';
+let selectedRoute = '';
+let showOnlyFlows = false;
+let filteredMSFVAData = [];
+let filteredConnFVAData = [];
+let filteredFlowFVAData = [];
 
 /* ---------- helpers ---------- */
 const pillColorMap = new Map();
@@ -631,7 +779,7 @@ function htmlEsc(s){
 }
 
 /* DataTables init wrapper */
-function initTable(id, data, cols, hidden = [], page = 10) {
+function initTable(id, data, cols, hidden = [], page = 10, hideSearch = false) {
   const $tbl = $(`#${id}`);
   if ($.fn.dataTable.isDataTable($tbl)) $tbl.DataTable().destroy();
   $tbl.empty();
@@ -642,10 +790,9 @@ function initTable(id, data, cols, hidden = [], page = 10) {
     data,
     columns: cols.map(c => ({ ...c, visible: !hidden.includes(c.data) })),
     pageLength: page,
-    dom: 'Bfrtip',
-    buttons: ['copyHtml5', 'excelHtml5', 'csvHtml5'],
+    dom: hideSearch ? 'frtip' : 'rtip',
     scrollX: true,
-    autoWidth: !isPrimary,
+    autoWidth: true,
     fixedHeader: isPrimary,
     drawCallback: function () { this.api().columns.adjust(); }
   });
@@ -671,7 +818,7 @@ function loadFirstTable(file){
     const hiddenCols=Object.keys(rows[0]).filter(k=>!whitelist.includes(k));
     const cols=[];
 
-    /* Tile 1: Route Info (wider, 2-column layout, no border) */
+    /* Tile 1: Route Info (wider, 2-column layout, no border, transparent background) */
     cols.push({
       title:'Route',data:null,orderable:false,
       render:(d,t,row)=>{
@@ -681,14 +828,13 @@ function loadFirstTable(file){
         const [left,...rest]=String(entity).split('_');
         const right=rest.join('_');
         const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        const bg=pillColor(route);
         
         // Determine bucket class
         let bucketClass = 'bucket-other';
         if(bucket.startsWith('1.')) bucketClass = 'bucket-1';
         else if(bucket.startsWith('3.')) bucketClass = 'bucket-3';
         
-        return `<div class="route-tile" style="background-color: ${bg}20;" onclick="filterSecondary('Route/Leg','${esc(route).replace(/'/g,'\\&#39;}')}')">
+        return `<div class="route-tile" onclick="selectRouteAndFilter('${esc(route).replace(/'/g,'\\&#39;}')}')">
                   <div class="route-left">
                     <div class="bucket-indicator ${bucketClass}">${esc(bucket)}</div>
                     <div class="entity-value">${esc(left)}_${esc(right)}</div>
@@ -700,7 +846,7 @@ function loadFirstTable(file){
       }
     });
 
-    /* Tile 2: KPI Checks (no border) */
+    /* Tile 2: KPI Checks (no border, compact) */
     cols.push({
       title:'KPI Checks',data:null,orderable:false,
       render:(d,t,row)=>{
@@ -730,7 +876,7 @@ function loadFirstTable(file){
       }
     });
 
-    /* Tile 3: Pax/week (2-column layout, no border) */
+    /* Tile 3: Pax/week (2-column layout, no border, no labels) */
     cols.push({
       title: 'Pax/week', data: null, orderable: false,
       render: (data, type, row) => {
@@ -745,8 +891,8 @@ function loadFirstTable(file){
         
         return `<div class="two-column-tile">
                   <div class="values-column">
-                    <div class="pdd-value">PDD: ${pddDisp}</div>
-                    <div class="apm-value">APM: ${apmDisp}</div>
+                    <div class="pdd-value">${pddDisp}</div>
+                    <div class="apm-value">${apmDisp}</div>
                   </div>
                   <div class="diff-column">
                     <div class="diff-value ${diffClass}">${diffDisp}%</div>
@@ -755,7 +901,7 @@ function loadFirstTable(file){
       }
     });
 
-    /* Tile 4: Flow/week (2-column layout, no border) */
+    /* Tile 4: Flow/week (2-column layout, no border, no labels) */
     cols.push({
       title:'Flow/week',data:null,orderable:false,
       render:(d,t,row)=>{
@@ -766,8 +912,8 @@ function loadFirstTable(file){
         
         return `<div class="two-column-tile">
                   <div class="values-column">
-                    <div class="pdd-value">PDD: ${pdd.toLocaleString()}</div>
-                    <div class="apm-value">APM: ${apm.toLocaleString()}</div>
+                    <div class="pdd-value">${pdd.toLocaleString()}</div>
+                    <div class="apm-value">${apm.toLocaleString()}</div>
                   </div>
                   <div class="diff-column">
                     <div class="diff-value ${diffClass}">${diff.toFixed(1)}%</div>
@@ -776,7 +922,7 @@ function loadFirstTable(file){
       }
     });
 
-    /* Tile 5: Local/week (2-column layout, no border) */
+    /* Tile 5: Local/week (2-column layout, no border, no labels) */
     cols.push({
       title:'Local/week',data:null,orderable:false,
       render:(d,t,row)=>{
@@ -787,8 +933,8 @@ function loadFirstTable(file){
         
         return `<div class="two-column-tile">
                   <div class="values-column">
-                    <div class="pdd-value">PDD: ${pdd.toLocaleString()}</div>
-                    <div class="apm-value">APM: ${apm.toLocaleString()}</div>
+                    <div class="pdd-value">${pdd.toLocaleString()}</div>
+                    <div class="apm-value">${apm.toLocaleString()}</div>
                   </div>
                   <div class="diff-column">
                     <div class="diff-value ${diffClass}">${diff.toFixed(1)}%</div>
@@ -797,7 +943,7 @@ function loadFirstTable(file){
       }
     });
 
-    /* Tile 6: Flow% (2-column layout, no border) */
+    /* Tile 6: Flow% (2-column layout, no border, no labels) */
     cols.push({
       title:'Flow%',data:null,orderable:false,
       render:(d,t,row)=>{
@@ -809,8 +955,8 @@ function loadFirstTable(file){
         
         return `<div class="two-column-tile">
                   <div class="values-column">
-                    <div class="pdd-value">PDD: ${pdd.toFixed(2)}%</div>
-                    <div class="apm-value">APM: ${apm.toFixed(2)}%</div>
+                    <div class="pdd-value">${pdd.toFixed(2)}%</div>
+                    <div class="apm-value">${apm.toFixed(2)}%</div>
                   </div>
                   <div class="diff-column">
                     <div class="diff-value ${diffClass}">${diff.toFixed(2)}%</div>
@@ -819,7 +965,7 @@ function loadFirstTable(file){
       }
     });
 
-    /* Tile 7: Load Factor (2-column layout, no border) */
+    /* Tile 7: Load Factor (2-column layout, no border, no labels) */
     cols.push({
       title:'Load Factor',data:null,orderable:false,
       render:(d,t,row)=>{
@@ -830,8 +976,8 @@ function loadFirstTable(file){
         
         return `<div class="two-column-tile">
                   <div class="values-column">
-                    <div class="pdd-value">PDD: ${pdd.toFixed(2)}%</div>
-                    <div class="apm-value">APM: ${apm.toFixed(2)}%</div>
+                    <div class="pdd-value">${pdd.toFixed(2)}%</div>
+                    <div class="apm-value">${apm.toFixed(2)}%</div>
                   </div>
                   <div class="diff-column">
                     <div class="diff-value ${diffClass}">${(Math.abs(diff)).toFixed(2)}%</div>
@@ -852,6 +998,149 @@ function loadFirstTable(file){
   }});
 }
 
+/* ---------- select route and filter all tables ---------- */
+function selectRouteAndFilter(route) {
+  selectedRoute = route;
+  lastClickedOD = route;
+  filterAllTablesByOD(route);
+  updateRouteFlowTable();
+}
+
+/* ---------- update route flow table ---------- */
+function updateRouteFlowTable() {
+  if(!flowfvaData.length || !selectedRoute) {
+    if(!$.fn.dataTable.isDataTable('#route-flow-table')) initTable('route-flow-table',[],[{title:'No data',data:null}],[],10,true);
+    else { const dt=$('#route-flow-table').DataTable(); dt.clear().draw(); }
+    return;
+  }
+
+  // Filter FlowFVA data for selected route in leg_OD column
+  let filteredRows = flowfvaData.filter(row => {
+    const legOD = String(row['leg_OD'] || '').trim();
+    return legOD === selectedRoute;
+  });
+
+  // Apply flow toggle filter
+  if(showOnlyFlows) {
+    filteredRows = filteredRows.filter(row => {
+      const local = num(row['local']);
+      return local !== 0;
+    });
+  }
+
+  // Sort by absolute value of flowdmd_diff (assuming column name)
+  filteredRows.sort((a, b) => {
+    const diffA = Math.abs(num(a['flowdmd_diff'] || 0));
+    const diffB = Math.abs(num(b['flowdmd_diff'] || 0));
+    return diffB - diffA;
+  });
+
+  // Take top 10
+  filteredRows = filteredRows.slice(0, 10);
+
+  // Columns to show
+  const cols = [
+    { 
+      title: 'OD', 
+      data: 'OD',
+      render: (data) => {
+        const val = String(data || '').trim();
+        const safe = htmlEsc(val);
+        const bg = pillColor(val);
+        return `<span class="od-pill px-2 py-1 rounded-full text-white text-xs font-medium"
+                   style="background-color:${bg}"
+                   onclick="filterAllTablesByOD('${safe}')">${safe}</span>`;
+      }
+    },
+    { title: 'Demand', data: 'demand' },
+    { title: 'Traffic', data: 'traffic' },
+    { title: 'Actual Traffic', data: 'actual_traffic' }
+  ];
+
+  initTable('route-flow-table', filteredRows, cols, [], 10, true);
+}
+
+/* ---------- filter all tables by OD ---------- */
+function filterAllTablesByOD(odValue) {
+  lastClickedOD = String(odValue || '').trim();
+  
+  // Filter FlowFVA by leg_OD column
+  filteredFlowFVAData = flowfvaData.filter(r=>{
+    const legOD = String(r['leg_OD'] || '').trim().toUpperCase();
+    return legOD === lastClickedOD.toUpperCase();
+  });
+  updateFlowFVATable();
+  
+  // Filter MSFVA by combining origin & destin columns
+  filteredMSFVAData = msfvaData.filter(r=>{
+    const originCols = ['origin', 'ORG', 'Origin'];
+    const destinCols = ['destin', 'DST', 'Destination'];
+    
+    let origin = '';
+    let destin = '';
+    
+    for (const col of originCols) {
+      if (r[col] !== undefined) {
+        origin = String(r[col] || '').trim().toUpperCase();
+        break;
+      }
+    }
+    
+    for (const col of destinCols) {
+      if (r[col] !== undefined) {
+        destin = String(r[col] || '').trim().toUpperCase();
+        break;
+      }
+    }
+    
+    const combined = origin + destin;
+    const combinedWithDash = origin + '-' + destin;
+    
+    return combined === lastClickedOD.toUpperCase() || combinedWithDash === lastClickedOD.toUpperCase();
+  });
+  updateMSFVATable();
+  
+  // Filter ConnectionsFVA by combining origin & destin columns
+  filteredConnFVAData = connfvaData.filter(r=>{
+    const originCols = ['origin', 'ORG', 'Origin'];
+    const destinCols = ['destin', 'DST', 'Destination'];
+    
+    let origin = '';
+    let destin = '';
+    
+    for (const col of originCols) {
+      if (r[col] !== undefined) {
+        origin = String(r[col] || '').trim().toUpperCase();
+        break;
+      }
+    }
+    
+    for (const col of destinCols) {
+      if (r[col] !== undefined) {
+        destin = String(r[col] || '').trim().toUpperCase();
+        break;
+      }
+    }
+    
+    const combined = origin + destin;
+    const combinedWithDash = origin + '-' + destin;
+    
+    return combined === lastClickedOD.toUpperCase() || combinedWithDash === lastClickedOD.toUpperCase();
+  });
+  updateConnectionsFVATable();
+  
+  // Switch to first tab that has data
+  setTimeout(()=>{
+    const hasFl=filteredFlowFVAData.length > 0;
+    const hasMs=filteredMSFVAData.length > 0;
+    const hasCn=filteredConnFVAData.length > 0;
+    
+    if(hasFl) document.querySelector('button[data-tab="fl"]').click();
+    else if(hasMs) document.querySelector('button[data-tab="ms"]').click();
+    else if(hasCn) document.querySelector('button[data-tab="cn"]').click();
+  },50);
+}
+
 /* ---------- load secondary CSVs ---------- */
 function loadSecondTable(file,type){
   Papa.parse(file,{header:true,skipEmptyLines:true,complete(r){
@@ -864,107 +1153,151 @@ function loadSecondTable(file,type){
     const statusId = type === 'MSFVA' ? 'file2-status' : 
                     type === 'FlowFVA' ? 'file3-status' : 'file4-status';
     document.getElementById(statusId).textContent = file.name;
+    
+    // If this is FlowFVA and we're on the FlowFVA tab, update the table
+    if(type==='FlowFVA' && document.querySelector('button[data-tab="fl"]').classList.contains('active')) {
+      updateFlowFVATable();
+    }
+    
+    // If this is ConnectionsFVA and we're on the ConnectionsFVA tab, update the table
+    if(type==='ConnectionsFVA' && document.querySelector('button[data-tab="cn"]').classList.contains('active')) {
+      updateConnectionsFVATable();
+    }
+    
+    // If this is MSFVA and we're on the MSFVA tab, update the table
+    if(type==='MSFVA' && document.querySelector('button[data-tab="ms"]').classList.contains('active')) {
+      updateMSFVATable();
+    }
+    
+    // If this is FlowFVA and we have a selected route, update the route flow table
+    if(type==='FlowFVA' && selectedRoute) {
+      updateRouteFlowTable();
+    }
   }});
 }
 
-/* ---------- secondary filtering ---------- */
-function filterSecondary(col,val){
-  updateSecondary(msfvaData,'tbl-ms',col,val,'ms');
-  updateSecondary(flowfvaData,'tbl-fl',col,val,'fl');
-  updateSecondary(connfvaData,'tbl-cn',col,val,'cn');
-
-  // Switch to first non-empty tab after filtering
-  setTimeout(()=>{
-    const hasMs=$.fn.dataTable.isDataTable('#tbl-ms') ? $('#tbl-ms').DataTable().data().count()>0 : false;
-    const hasFl=$.fn.dataTable.isDataTable('#tbl-fl') ? $('#tbl-fl').DataTable().data().count()>0 : false;
-    const hasCn=$.fn.dataTable.isDataTable('#tbl-cn') ? $('#tbl-cn').DataTable().data().count()>0 : false;
-    if(hasMs) document.querySelector('button[data-tab="ms"]').click();
-    else if(hasFl) document.querySelector('button[data-tab="fl"]').click();
-    else if(hasCn) document.querySelector('button[data-tab="cn"]').click();
-  },50);
-}
-
-function updateSecondary(src,tblId,col,val,type){
-  if(!src.length){
-    if(!$.fn.dataTable.isDataTable('#'+tblId)) initTable(tblId,[],[{title:'No data',data:null}],[],10);
-    else { const dt=$('#'+tblId).DataTable(); dt.clear().draw(); }
+/* ---------- update FlowFVA table with host filter ---------- */
+function updateFlowFVATable() {
+  let dataToUse = filteredFlowFVAData.length > 0 ? filteredFlowFVAData : [];
+  
+  if(!dataToUse.length) {
+    if(!$.fn.dataTable.isDataTable('#tbl-fl')) initTable('tbl-fl',[],[{title:'No data',data:null}],[],10);
+    else { const dt=$('#tbl-fl').DataTable(); dt.clear().draw(); }
     return;
   }
 
-  const targetVal=String(val||'').trim().toUpperCase();
-  let rows=[];
-
-  if(type==='ms' || type==='cn'){
-    rows = src.filter(r=>{
-      const o = String(r['origin'] || r['ORG'] || r['Origin'] || '').trim().toUpperCase();
-      const d = String(r['destin'] || r['DST'] || r['Destination'] || '').trim().toUpperCase();
-      return (o + d) === targetVal || (o + '-' + d) === targetVal;
+  let filteredRows = dataToUse;
+  
+  // Apply host filter if set
+  if(currentHostFilter) {
+    filteredRows = dataToUse.filter(row => {
+      const opAln = String(row['leg_op_aln'] || '').trim();
+      const mktAln = String(row['leg_mkt_aln'] || '').trim();
+      return opAln === currentHostFilter && mktAln === currentHostFilter;
     });
-    if(type==='ms'){
-      rows = rows.filter(r=>{
-        const od = String(r['origin']||'') + String(r['destin']||'');
-        return !od.startsWith('**') && !od.startsWith('*Host') && !od.startsWith('*Others');
-      });
+  }
+
+  // Columns to hide
+  const columnsToHide = new Set([
+    'tot_pm_demand', 'tot_pm_traffic', 'tot_actual_traffic', 
+    'total_actual_cap', 'histleg_vs_pdd_err_pct', 'only_in_hist'
+  ].map(s => s.toLowerCase()));
+
+  // Create columns
+  const cols = Object.keys(dataToUse[0] || {}).map(k => {
+    const lower = k.toLowerCase();
+    if(lower === 'od'){
+      return {
+        title: 'OD',
+        data: k,
+        render: (data) => {
+          const val = String(data || '').trim();
+          const safe = htmlEsc(val);
+          const bg = pillColor(val);
+          return `<span class="od-pill px-2 py-1 rounded-full text-white text-xs font-medium"
+                     style="background-color:${bg}"
+                     onclick="filterAllTablesByOD('${safe}')">${safe}</span>`;
+        }
+      };
     }
-  } else if(type==='fl'){
-    rows = src.filter(r=>{
-      const od = String(r['leg_OD'] || r['OD'] || '').trim().toUpperCase();
-      return od === targetVal;
-    });
-  }
-
-  let cols;
-  if(type==='fl'){
-    // hide these columns in FlowFVA
-    const hiddenSet = new Set(['leg_op_aln','leg_OD','leg_entity','leg_mkt_aln','od_entity'].map(s=>s.toLowerCase()));
-    cols = Object.keys(src[0] || {}).map(k=>{
-      const lower = k.toLowerCase();
-      if(lower === 'od'){
-        return {
-          title: 'OD',
-          data: k,
-          render: (data) => {
-            const val = String(data || '').trim();
-            const safe = htmlEsc(val);
-            const bg = pillColor(val);
-            // Use data attribute to avoid quote issues
-            return `<span class="od-pill px-2 py-1 rounded-full text-white text-xs font-medium"
-                       style="background-color:${bg};cursor:pointer"
-                       data-od="${safe}"
-                       onclick="filterThirdTable(this.dataset.od)">${safe}</span>`;
-          }
-        };
-      }
-      return { title: k, data: k, visible: !hiddenSet.has(lower) };
-    });
-  } else {
-    cols = Object.keys(src[0] || {}).map(k=>({title:k,data:k}));
-  }
-
-  initTable(tblId, rows, cols, [], 10);
-}
-
-/* ---------- third table (filtered by OD) ---------- */
-function filterThirdTable(odValue){
-  lastClickedOD = String(odValue || '').trim();
-  const cont = document.getElementById('third-table-container');
-  cont.classList.remove('hidden');
-  document.getElementById('od-value').textContent = lastClickedOD;
-
-  // Filter FlowFVA rows matching clicked OD (fallback to leg_OD if that's what's present)
-  const filtered = flowfvaData.filter(r => {
-    const od = String(r['OD'] || r['leg_OD'] || '').trim().toUpperCase();
-    return od === lastClickedOD.toUpperCase();
+    return { 
+      title: k, 
+      data: k, 
+      visible: !columnsToHide.has(lower) 
+    };
   });
 
-  // Reuse same hidden set so third table also hides those fields
-  const hiddenSet = new Set(['leg_op_aln','leg_OD','leg_entity','leg_mkt_aln','od_entity'].map(s=>s.toLowerCase()));
-  const cols = Object.keys(flowfvaData[0] || {}).map(k => ({ title: k, data: k, visible: !hiddenSet.has(k.toLowerCase()) }));
+  initTable('tbl-fl', filteredRows, cols, [], 10);
+}
 
-  initTable('tbl-third', filtered, cols, [], 10);
+/* ---------- update ConnectionsFVA table ---------- */
+function updateConnectionsFVATable() {
+  let dataToUse = filteredConnFVAData.length > 0 ? filteredConnFVAData : [];
+  
+  if(!dataToUse.length) {
+    if(!$.fn.dataTable.isDataTable('#tbl-cn')) initTable('tbl-cn',[],[{title:'No data',data:null}],[],10);
+    else { const dt=$('#tbl-cn').DataTable(); dt.clear().draw(); }
+    return;
+  }
 
-  // Ensure we’re on the FlowFVA tab to see the third table
-  document.querySelector('button[data-tab="fl"]').click();
+  // Filter out rows where Svc column has *** or host_ind as ***
+  const filteredRows = dataToUse.filter(row => {
+    const svc = String(row['Svc'] || '').trim();
+    const hostInd = String(row['host_ind'] || '').trim();
+    return svc !== '***' && hostInd !== '***';
+  });
+
+  // Create columns with OD pill
+  const cols = Object.keys(dataToUse[0] || {}).map(k => {
+    if(k.toLowerCase() === 'od') {
+      return {
+        title: k,
+        data: k,
+        render: (data) => {
+          const val = String(data || '').trim();
+          const safe = htmlEsc(val);
+          const bg = pillColor(val);
+          return `<span class="od-pill px-2 py-1 rounded-full text-white text-xs font-medium"
+                     style="background-color:${bg}"
+                     onclick="filterAllTablesByOD('${safe}')">${safe}</span>`;
+        }
+      };
+    }
+    return {title:k,data:k};
+  });
+
+  initTable('tbl-cn', filteredRows, cols, [], 10);
+}
+
+/* ---------- update MSFVA table ---------- */
+function updateMSFVATable() {
+  let dataToUse = filteredMSFVAData.length > 0 ? filteredMSFVAData : [];
+  
+  if(!dataToUse.length) {
+    if(!$.fn.dataTable.isDataTable('#tbl-ms')) initTable('tbl-ms',[],[{title:'No data',data:null}],[],10);
+    else { const dt=$('#tbl-ms').DataTable(); dt.clear().draw(); }
+    return;
+  }
+
+  const cols = Object.keys(dataToUse[0] || {}).map(k => {
+    if(k.toLowerCase() === 'od') {
+      return {
+        title: k,
+        data: k,
+        render: (data) => {
+          const val = String(data || '').trim();
+          const safe = htmlEsc(val);
+          const bg = pillColor(val);
+          return `<span class="od-pill px-2 py-1 rounded-full text-white text-xs font-medium"
+                     style="background-color:${bg}"
+                     onclick="filterAllTablesByOD('${safe}')">${safe}</span>`;
+        }
+      };
+    }
+    return {title:k,data:k};
+  });
+
+  initTable('tbl-ms', dataToUse, cols, [], 10);
 }
 
 /* ---------- tab switching ---------- */
@@ -977,6 +1310,15 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     });
     btn.classList.add('bg-blue-600','text-white','active');
     document.getElementById('tab-'+btn.dataset.tab).classList.remove('hidden');
+    
+    // Update the table based on current filter state
+    if(btn.dataset.tab === 'fl') {
+      updateFlowFVATable();
+    } else if(btn.dataset.tab === 'ms') {
+      updateMSFVATable();
+    } else if(btn.dataset.tab === 'cn') {
+      updateConnectionsFVATable();
+    }
   });
 });
 
@@ -1030,6 +1372,18 @@ document.getElementById('upload-cn').addEventListener('click', () => document.ge
 // Back button for third table
 document.getElementById('back-to-secondary').addEventListener('click', () => {
   document.getElementById('third-table-container').classList.add('hidden');
+});
+
+// Host filter functionality
+document.getElementById('apply-host-filter').addEventListener('click', () => {
+  currentHostFilter = document.getElementById('host-filter-input').value.trim();
+  updateFlowFVATable();
+});
+
+// Flow toggle functionality
+document.getElementById('flow-toggle').addEventListener('change', function() {
+  showOnlyFlows = this.checked;
+  updateRouteFlowTable();
 });
 
 // Initialize with first tab active
