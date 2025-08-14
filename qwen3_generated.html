@@ -413,6 +413,72 @@
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
+  
+  /* Drawer wrapper – pinned to the left of the KPI container */
+.flow-drawer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  pointer-events: none;        /* let clicks pass through when closed */
+  z-index: 10;
+}
+
+/* Invisible trigger strip */
+.flow-drawer__trigger {
+  width: 1.5rem;
+  height: 100%;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* Actual content */
+.flow-drawer__content {
+  height: 100%;
+  width: 220px;                /* adjust to taste */
+  background: rgb(39 39 42);    /* zinc-800 */
+  border-right: 1px solid rgb(63 63 70);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  padding: 0.75rem;
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+/* Reveal on hover */
+.flow-drawer:hover .flow-drawer__content {
+  transform: translateX(0);
+}
+
+/* Drawer wrapper – fixed to bottom */
+.detail-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  pointer-events: none;
+}
+.detail-trigger {
+  height: 6px;
+  width: 100%;
+  background: rgba(99,102,241,0.5);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.detail-panel {
+  max-height: 0;
+  overflow: hidden;
+  background: rgb(24 24 27);
+  border-top: 1px solid rgb(63 63 70);
+  transition: max-height 0.3s ease;
+  pointer-events: auto;
+}
+.detail-fixed.open .detail-panel {
+  max-height: 70vh;
+}
 
   /* Third table breadcrumb */
   .breadcrumb {
@@ -496,27 +562,51 @@
     transform: translateX(26px);
   }
 
-  /* Two-column layout for KPI Overview */
-  .kpi-overview-container {
-    display: flex;
-    gap: 1rem;
-    height: 500px;
-  }
-  
-  /* shrink the left column */
-.kpi-overview-container > :last-child {
-  flex: 0 0 10%;   /* don’t grow, don’t shrink, stay at 30 % */
-}
-
-/* the right column will take whatever is left (70 %) */
-.kpi-overview-container > :first-child {
-  flex: 1 1 auto;  /* grow to fill remaining space */
-}
-
   .kpi-main-table {
     flex: 3;
     min-width: 0;
     overflow: auto;
+  }
+  
+  .top10-fixed {
+    position: fixed;
+    top: 10%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  /* 6 px trigger strip */
+  .top10-trigger {
+    width: 6px;
+    height: 120px;
+    background: rgba(99,102,241,0.5);
+    border-radius: 4px 0 0 4px;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+
+  /* Drawer content */
+  .top10-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 220px;
+    max-height: 360px;
+    background: rgb(39 39 42);
+    border-left: 1px solid rgb(63 63 70);
+    border-radius: 0.5rem 0 0 0.5rem;
+    padding: 0.75rem;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    pointer-events: auto;
+  }
+
+  /* when open => stay open */
+  .top10-fixed.open .top10-panel {
+    transform: translateX(0);
   }
 
   .kpi-flow-table {
@@ -604,129 +694,210 @@
 <body class="dark bg-zinc-950 text-zinc-300 min-h-screen p-4 md:p-6">
 
 <!-- File Upload Section -->
-<div class="bg-zinc-900 rounded-xl shadow-lg p-4 mb-6">
-  <h2 class="text-lg font-semibold text-white mb-3">Data Sources</h2>
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-    <div class="file-upload-area" id="upload-kpi">
-      <div class="flex flex-col items-center">
-        <svg class="w-6 h-6 text-blue-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-        </svg>
-        <span class="text-xs font-medium text-white">KPI Data</span>
-        <span class="text-[0.6rem] text-zinc-400 mt-1" id="file1-status">No file</span>
+<!-- ========== COLLAPSIBLE DATA SOURCES ========== -->
+<style>
+  /* Drawer wrapper – invisible until hover */
+  .csv-drawer {
+    position: relative;
+    margin-bottom: 1.5rem;          /* keep spacing when closed */
+  }
+
+  .csv-drawer__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #18181b;            /* zinc-900 */
+    border: 1px solid #3f3f46;      /* zinc-700 */
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    color: #e4e4e7;                 /* zinc-200 */
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .csv-drawer__trigger:hover {
+    background: #27272a;            /* zinc-800 */
+  }
+
+  /* Actual upload area – slides down on hover */
+  .csv-drawer__content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .csv-drawer:hover .csv-drawer__content,
+  .csv-drawer__content:hover {
+    max-height: 500px;              /* enough to show the grid */
+  }
+
+  /* restyle the grid inside so it looks like the old card */
+  .csv-drawer__card {
+    margin-top: 0.5rem;
+    background: #18181b;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,.4);
+  }
+</style>
+
+<div class="csv-drawer">
+  <!-- floating trigger -->
+  <div class="csv-drawer__trigger">
+    <svg class="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+    </svg>
+    <span></span>
+  </div>
+
+  <!-- collapsible content -->
+  <div class="csv-drawer__content">
+    <div class="csv-drawer__card">
+      <h2 class="text-lg font-semibold text-white mb-3">Data Sources</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- KPI Data -->
+        <div class="file-upload-area" id="upload-kpi">
+          <div class="flex flex-col items-center">
+            <svg class="w-6 h-6 text-blue-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <span class="text-xs font-medium text-white">KPI Data</span>
+            <span class="text-[0.6rem] text-zinc-400 mt-1" id="file1-status">No file</span>
+          </div>
+          <input type="file" id="file1" accept=".csv" class="hidden">
+        </div>
+
+        <!-- MSFVA -->
+        <div class="file-upload-area" id="upload-ms">
+          <div class="flex flex-col items-center">
+            <svg class="w-6 h-6 text-purple-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span class="text-xs font-medium text-white">MSFVA</span>
+            <span class="text-[0.6rem] text-zinc-400 mt-1" id="file2-status">No file</span>
+          </div>
+          <input type="file" id="file2" accept=".csv" class="hidden">
+        </div>
+
+        <!-- FlowFVA -->
+        <div class="file-upload-area" id="upload-fl">
+          <div class="flex flex-col items-center">
+            <svg class="w-6 h-6 text-green-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <span class="text-xs font-medium text-white">FlowFVA</span>
+            <span class="text-[0.6rem] text-zinc-400 mt-1" id="file3-status">No file</span>
+          </div>
+          <input type="file" id="file3" accept=".csv" class="hidden">
+        </div>
+
+        <!-- ConnectionsFVA -->
+        <div class="file-upload-area" id="upload-cn">
+          <div class="flex flex-col items-center">
+            <svg class="w-6 h-6 text-pink-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span class="text-xs font-medium text-white">CNXFVA</span>
+            <span class="text-[0.6rem] text-zinc-400 mt-1" id="file4-status">No file</span>
+          </div>
+          <input type="file" id="file4" accept=".csv" class="hidden">
+        </div>
       </div>
-      <input type="file" id="file1" accept=".csv" class="hidden">
-    </div>
-    
-    <div class="file-upload-area" id="upload-ms">
-      <div class="flex flex-col items-center">
-        <svg class="w-6 h-6 text-purple-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-        </svg>
-        <span class="text-xs font-medium text-white">MSFVA</span>
-        <span class="text-[0.6rem] text-zinc-400 mt-1" id="file2-status">No file</span>
-      </div>
-      <input type="file" id="file2" accept=".csv" class="hidden">
-    </div>
-    
-    <div class="file-upload-area" id="upload-fl">
-      <div class="flex flex-col items-center">
-        <svg class="w-6 h-6 text-green-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-        </svg>
-        <span class="text-xs font-medium text-white">FlowFVA</span>
-        <span class="text-[0.6rem] text-zinc-400 mt-1" id="file3-status">No file</span>
-      </div>
-      <input type="file" id="file3" accept=".csv" class="hidden">
-    </div>
-    
-    <div class="file-upload-area" id="upload-cn">
-      <div class="flex flex-col items-center">
-        <svg class="w-6 h-6 text-pink-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-        </svg>
-        <span class="text-xs font-medium text-white">CNXFVA</span>
-        <span class="text-[0.6rem] text-zinc-400 mt-1" id="file4-status">No file</span>
-      </div>
-      <input type="file" id="file4" accept=".csv" class="hidden">
     </div>
   </div>
 </div>
+
+<script>
+/* Re-attach the same click / drop handlers to the new upload areas */
+['upload-kpi','upload-ms','upload-fl','upload-cn'].forEach(id=>{
+  const area = document.getElementById(id);
+  const file  = document.getElementById(id.replace('upload-','file'));
+  area.addEventListener('click',()=>file.click());
+  ['dragenter','dragover'].forEach(e=>area.addEventListener(e,ev=>{ev.preventDefault();area.classList.add('drag-over');}));
+  ['dragleave','drop'].forEach(e=>area.addEventListener(e,ev=>{ev.preventDefault();area.classList.remove('drag-over');}));
+  area.addEventListener('drop',ev=>{
+    const files=ev.dataTransfer.files;
+    if(files.length){file.files=files;file.dispatchEvent(new Event('change',{bubbles:true}));}
+  });
+});
+</script>
+<!-- ========== /COLLAPSIBLE DATA SOURCES ========== -->
 
 <!-- Primary Table -->
 <div class="bg-zinc-900 rounded-xl shadow-lg p-4 mb-6">
   <h2 class="text-lg font-semibold text-white mb-3">KPI Overview</h2>
-  <div class="kpi-overview-container">
-    <div class="kpi-main-table">
-      <div class="scrollable-container">
-        <table id="table1" class="display w-full"></table>
-      </div>
-    </div>
-    <div class="kpi-flow-table">
-      <!-- Route flow table removed as per request -->
-      <!-- Top 10 ODs with highest abs_flowdmd_diff container -->
-      <div id="top-od-container" class="mt-4 p-3 bg-zinc-800 rounded-lg">
-        <h3 class="text-sm font-medium text-white mb-2">Top 10 Flow Markets:</h3>
-        <div id="top-od-pills" class="flex flex-wrap gap-2"></div>
-      </div>
-    </div>
+
+  <!-- scrollable container -->
+  <div class="overflow-x-auto">
+    <table id="table1" class="display w-full"></table>
   </div>
+
+  <!-- Top 10 drawer (hidden until hover) -->
+	<div class="top10-fixed" id="top10-fixed">
+	  <div id="top10-trigger" class="top10-trigger" title="Show top-10 (F)"></div>
+	  <div class="top10-panel">
+		<div class="flex justify-between items-center mb-2">
+		  <h3 class="text-sm font-medium text-white">Top 10 Flow Markets</h3>
+		  <button id="top10-close" class="text-xs text-zinc-400 hover:text-white">Hide</button>
+		</div>
+		<div id="top-od-pills" class="flex flex-col gap-2"></div>
+	  </div>
+	</div>
 </div>
 
+
 <!-- Secondary Tables Section -->
-<div class="bg-zinc-900 rounded-xl shadow-lg p-4">
-  <h2 class="text-lg font-semibold text-white mb-3">Detailed Analysis</h2>
-  
-  <!-- Tab Navigation -->
-  <div class="border-b border-zinc-700 mb-4">
-    <nav class="flex flex-wrap gap-1" id="secondary-tabs">
-      <button data-tab="fl" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium">FlowFVA</button>
-      <button data-tab="ms" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium">MSFVA</button>
-      <button data-tab="cn" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium">ConnectionsFVA</button>
-    </nav>
-  </div>
-  
-  <!-- Tab Content -->
-  <div id="tab-content">
-    <div id="tab-fl" class="tab-panel">
-      <!-- Host filter for FlowFVA -->
-      <div class="host-filter">
-        <label for="host-filter-input" class="text-sm text-white">Host:</label>
-        <input type="text" id="host-filter-input" placeholder="Enter host value" class="text-sm">
-        <button id="apply-host-filter" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Apply</button>
+<div class="detail-fixed" id="detail-fixed">
+  <div id="detail-trigger" class="detail-trigger" title="Show detailed analysis (D)"></div>
+  <div class="detail-panel">
+    <div class="bg-zinc-900 rounded-t-xl shadow-lg p-4">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-white">Detailed Analysis</h2>
+        <button id="detail-close" class="text-xs text-zinc-400 hover:text-white">Hide</button>
       </div>
-      <div class="overflow-x-auto">
-        <table id="tbl-fl" class="display w-full"></table>
-      </div>
+			  
+			  <!-- Tab Navigation -->
+			  <div class="border-b border-zinc-700 mb-4">
+				<nav class="flex flex-wrap gap-1" id="secondary-tabs">
+				  <button data-tab="fl" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium">FlowFVA</button>
+				  <button data-tab="ms" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium">MSFVA</button>
+				  <button data-tab="cn" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium">ConnectionsFVA</button>
+				</nav>
+			  </div>
+			  
+			  <!-- Tab Content -->
+			  <div id="tab-content">
+				<div id="tab-fl" class="tab-panel">
+				  <!-- Host filter for FlowFVA -->
+				  <div class="host-filter">
+					<label for="host-filter-input" class="text-sm text-white">Host:</label>
+					<input type="text" id="host-filter-input" placeholder="Enter host value" class="text-sm">
+					<button id="apply-host-filter" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Apply</button>
+				  </div>
+				  <div class="overflow-x-auto">
+					<table id="tbl-fl" class="display w-full"></table>
+				  </div>
+				</div>
 
-      <!-- Third table (appears after clicking an OD pill) -->
-      <div id="third-table-container" class="mt-6 hidden">
-        <div class="breadcrumb">
-          <button id="back-to-secondary" class="flex items-center text-sm text-blue-400 hover:text-blue-300">
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-            Back to FlowFVA
-          </button>
-          <span class="text-sm text-zinc-400">/</span>
-          <span class="text-sm text-white">OD Details: <span id="od-value" class="font-mono"></span></span>
-        </div>
-        <div class="overflow-x-auto">
-          <table id="tbl-third" class="display w-full"></table>
-        </div>
-      </div>
-    </div>
+				<div id="tab-ms" class="tab-panel hidden">
+				  <div class="overflow-x-auto">
+					<table id="tbl-ms" class="display w-full"></table>
+				  </div>
+				</div>
+				
+				<div id="tab-cn" class="tab-panel hidden">
+				  <div class="overflow-x-auto">
+					<table id="tbl-cn" class="display w-full"></table>
+				  </div>
+				</div>
+			  </div>
+			</div>
 
-    <div id="tab-ms" class="tab-panel hidden">
-      <div class="overflow-x-auto">
-        <table id="tbl-ms" class="display w-full"></table>
-      </div>
     </div>
-    
-    <div id="tab-cn" class="tab-panel hidden">
-      <div class="overflow-x-auto">
-        <table id="tbl-cn" class="display w-full"></table>
-      </div>
     </div>
   </div>
 </div>
@@ -752,6 +923,49 @@ function pillColor(v){
   }
   return pillColorMap.get(v);
 }
+
+// Top 10 drawer toggle
+const top10TriggerEl = document.getElementById('top10-trigger');
+if (top10TriggerEl) {
+  top10TriggerEl.addEventListener('click', () => {
+    document.getElementById('top10-fixed').classList.toggle('open');
+  });
+}
+
+const top10CloseEl = document.getElementById('top10-close');
+if (top10CloseEl) {
+  top10CloseEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('top10-fixed').classList.remove('open');
+  });
+}
+
+// Detail drawer toggle
+const detailTriggerEl = document.getElementById('detail-trigger');
+if (detailTriggerEl) {
+  detailTriggerEl.addEventListener('click', () => {
+    document.getElementById('detail-fixed').classList.toggle('open');
+  });
+}
+
+const detailCloseEl = document.getElementById('detail-close');
+if (detailCloseEl) {
+  detailCloseEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('detail-fixed').classList.remove('open');
+  });
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'f' || e.key === 'F') {
+    document.getElementById('top10-fixed').classList.toggle('open');
+  }
+  if (e.key === 'd' || e.key === 'D') {
+    document.getElementById('detail-fixed').classList.toggle('open');
+  }
+});
+
 
 function htmlEsc(s){
   return String(s ?? '')
@@ -975,7 +1189,7 @@ function loadFirstTable(file){
       cols.push({title:k,data:k});
     });
 
-    table1 = initTable('table1', rows, cols, hiddenCols, 10);
+    table1 = initTable('table1', rows, cols, hiddenCols, rows.length, true); // show all
     
     // Update file status
     document.getElementById('file1-status').textContent = file.name;
@@ -985,20 +1199,31 @@ function loadFirstTable(file){
 /* ---------- select route and filter all tables ---------- */
 function selectRouteAndFilter(route) {
   selectedRoute = route;
-  lastClickedOD = '';               // we are NOT filtering by OD now
+  lastClickedOD = '';
+
+  // Filter FlowFVA
   filteredFlowFVAData = flowfvaData.filter(r =>
     String(r['leg_OD'] || '').trim().toUpperCase() === route.toUpperCase()
   );
-  updateFlowFVATable();
 
-  // keep MSFVA & ConnectionsFVA empty when a route is chosen
-  filteredMSFVAData = [];
-  filteredConnFVAData = [];
+  // Filter MSFVA
+  filteredMSFVAData = msfvaData.filter(r => {
+    const legOD = String(r['leg_OD'] || r['OD'] || '').trim().toUpperCase();
+    return legOD === route.toUpperCase();
+  });
+
+  // Filter ConnectionsFVA
+  filteredConnFVAData = connfvaData.filter(r => {
+    const legOD = String(r['leg_OD'] || r['OD'] || '').trim().toUpperCase();
+    return legOD === route.toUpperCase();
+  });
+
+  updateFlowFVATable();
   updateMSFVATable();
   updateConnectionsFVATable();
-
-  updateTopODsContainer();          // refresh OD pills for this route
+  updateTopODsContainer();
 }
+
 
 /* ---------- route flow table function removed as per request ---------- */
 
@@ -1343,10 +1568,48 @@ document.getElementById('apply-host-filter').addEventListener('click', () => {
   updateFlowFVATable();
 });
 
+// Top 10 drawer toggle
+document.getElementById('top10-trigger').addEventListener('click', () => {
+  const drawer = document.getElementById('top10-fixed');
+  drawer.classList.toggle('open');
+});
 
+document.getElementById('top10-close').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('top10-fixed').classList.remove('open');
+});
+
+// Detail drawer toggle
+document.getElementById('detail-trigger').addEventListener('click', () => {
+  const drawer = document.getElementById('detail-fixed');
+  drawer.classList.toggle('open');
+});
+
+document.getElementById('detail-close').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('detail-fixed').classList.remove('open');
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  // 'F' key to toggle right drawer
+  if (e.key === 'f' || e.key === 'F') {
+    document.getElementById('top10-fixed').classList.toggle('open');
+  }
+  // 'D' key to toggle bottom drawer
+  if (e.key === 'd' || e.key === 'D') {
+    document.getElementById('detail-fixed').classList.toggle('open');
+  }
+});
 
 // Initialize with first tab active
 document.getElementById('tab-fl').classList.remove('hidden');
+
+// Open drawers by default
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('top10-fixed').classList.add('open');
+  document.getElementById('detail-fixed').classList.add('open');
+});
 </script>
 </body>
 </html>
