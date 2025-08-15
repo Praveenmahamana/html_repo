@@ -55,9 +55,11 @@
   
   table.dataTable thead th,
   table.dataTable tbody td {
-    padding: 0.5rem 0.75rem;
+	border: none !important;
+    padding: 1px 2px !important;  /* smaller padding */
+    font-size: 0.65rem !important; /* smaller text if desired */
     white-space: nowrap;
-    font-size: 0.875rem;
+    font-size: 0.65rem;
   }
   
   table.dataTable tbody tr {
@@ -166,7 +168,7 @@
   }
   
   .tile-value {
-    font-weight: 600;
+    font-weight: 100;
     font-size: 0.75rem;
     color: rgb(226 232 240);
     white-space: nowrap;
@@ -196,15 +198,16 @@
   .route-tile {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.55rem;
     padding: 0.5rem;
-    border-radius: 0.5rem;
+    border-radius: 0.0rem;
     transition: all 0.2s ease;
     cursor: pointer;
-    min-height: 42px;
-    width: 140px;
+    min-height: 32px;
+    width: 120px;
     background: transparent;
   }
+  
   
   .route-tile:hover {
     background-color: rgba(255, 255, 255, 0.05);
@@ -221,12 +224,12 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    align-items: flex-end;
+    align-items: flex-right;
   }
   
   .bucket-indicator {
     font-size: 0.6rem;
-    font-weight: 600;
+    font-weight: 100;
     padding: 0.125rem 0.25rem;
     border-radius: 0.25rem;
     text-transform: uppercase;
@@ -256,13 +259,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+	text-align: right;
   }
   
   .route-value {
-    font-size: 0.9rem;
-    font-weight: 700;
+    font-size: 0.75rem;
+    font-weight: 100;
     color: white;
-    margin-top: 0.25rem;
+    margin-top: 0.0rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -272,14 +276,13 @@
   /* Two-column tile styles - no border */
   .two-column-tile {
     display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
+    gap: .2rem;
+    padding: 0.0rem;
+    border-radius: 0.0rem;
     transition: all 0.2s ease;
     cursor: pointer;
-    min-height: 42px;
-    width: 140px;
+    min-height: 32px;
+    width: 120px;
     background: transparent;
   }
   
@@ -321,12 +324,12 @@
   /* KPI Checks tile - more compact */
   .kpi-checks-tile {
     display: flex;
-    gap: 0.75rem;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
+    gap: 0.15rem;
+    padding: 0.2rem;
+    border-radius: 0.0rem;
     transition: all 0.2s ease;
     cursor: pointer;
-    min-height: 42px;
+    min-height: 22px;
     background: transparent;
   }
   
@@ -346,7 +349,7 @@
     font-size: 0.55rem;
     color: rgb(148 163 184);
     text-transform: uppercase;
-    letter-spacing: 0.025em;
+    letter-spacing: 0.01em;
   }
   
   .kpi-status {
@@ -358,7 +361,7 @@
   /* File upload area */
   .file-upload-area {
     transition: all 0.3s ease;
-    border: 2px dashed rgb(63 63 70);
+    border: 1px dashed rgb(63 63 70);
     border-radius: 0.5rem;
     padding: 1rem;
     text-align: center;
@@ -462,7 +465,7 @@
   pointer-events: none;
 }
 .detail-trigger {
-  height: 6px;
+  height: 2px;
   width: 100%;
   background: rgba(99,102,241,0.5);
   cursor: pointer;
@@ -633,7 +636,7 @@
     }
     
     .route-tile {
-      width: 120px;
+      width: 100px;
     }
     
     .two-column-tile {
@@ -679,13 +682,13 @@
     
     table.dataTable thead th,
     table.dataTable tbody td {
-      padding: 0.375rem 0.5rem;
-      font-size: 0.75rem;
+      padding: 0.15rem 0.2rem;
+      font-size: 0.65rem;
     }
     
     .tab-btn {
       padding: 0.5rem;
-      font-size: 0.875rem;
+      font-size: 0.65rem;
     }
   }
 
@@ -704,6 +707,34 @@
   .diff-changed {
     background-color: rgba(250, 204, 21, 0.1);
     color: rgb(250 204 21);
+  }
+
+  /* Group by dropdown */
+  .group-by-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .group-by-label {
+    font-size: 0.875rem;
+    color: rgb(228 228 231);
+  }
+
+  .group-by-select {
+    background-color: rgb(24 24 27);
+    border: 1px solid rgb(63 63 70);
+    color: rgb(228 228 231);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+  }
+
+  .group-by-select:focus {
+    outline: none;
+    border-color: rgb(99 102 241);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
   }
 </style>
 </head>
@@ -860,6 +891,14 @@
 <!-- Primary Table -->
 <div class="bg-zinc-900 rounded-xl shadow-lg p-4 mb-6">
 
+  <!-- Group by dropdown -->
+  <div class="group-by-container">
+    <span class="group-by-label">Group by:</span>
+    <select id="group-by-select" class="group-by-select">
+      <option value="">None</option>
+    </select>
+  </div>
+
   <!-- scrollable container -->
   <div class="overflow-x-auto">
     <table id="table1" class="display w-full"></table>
@@ -885,7 +924,6 @@
   <div class="detail-panel">
     <div class="bg-zinc-900 rounded-t-xl shadow-lg p-4">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold text-white">Detailed Analysis</h2>
         <button id="detail-close" class="text-xs text-zinc-400 hover:text-white">Hide</button>
       </div>
 			  
@@ -950,6 +988,7 @@ let filteredConnFVAData = [];
 let filteredFlowFVAData = [];
 let prevKPIData = [];
 let currentKPIData = [];
+let originalKPIData = [];
 
 /* ---------- helpers ---------- */
 const pillColorMap = new Map();
@@ -1044,6 +1083,78 @@ const pct = v => {
   return isNaN(x) ? 0 : x;
 };
 
+/* ---------- group by functionality ---------- */
+function updateGroupByOptions(columns) {
+  const select = document.getElementById('group-by-select');
+  select.innerHTML = '<option value="">None</option>';
+  
+  columns.forEach(col => {
+    const option = document.createElement('option');
+    option.value = col;
+    option.textContent = col;
+    select.appendChild(option);
+  });
+}
+
+function groupDataByColumn(data, groupColumn) {
+  if (!groupColumn) return data;
+  
+  const grouped = {};
+  
+  // Group data
+  data.forEach(row => {
+    const key = row[groupColumn] || 'N/A';
+    if (!grouped[key]) {
+      grouped[key] = [];
+    }
+    grouped[key].push(row);
+  });
+  
+  // Aggregate data
+  const aggregated = [];
+  Object.keys(grouped).forEach(key => {
+    const group = grouped[key];
+    const aggregatedRow = { [groupColumn]: key };
+    
+    // Get all columns except the group column
+    const columns = Object.keys(data[0] || {}).filter(col => col !== groupColumn);
+    
+    columns.forEach(col => {
+      // Check if column contains numeric data
+      const isNumeric = group.every(row => {
+        const val = row[col];
+        return val === '' || val === null || !isNaN(parseFloat(String(val).replace(/,/g, '')));
+      });
+      
+      if (isNumeric) {
+        // Calculate median for numeric columns
+        const values = group
+          .map(row => parseFloat(String(row[col]).replace(/,/g, '')) || 0)
+          .filter(val => !isNaN(val))
+          .sort((a, b) => a - b);
+        
+        if (values.length > 0) {
+          const mid = Math.floor(values.length / 2);
+          const median = values.length % 2 === 0 
+            ? (values[mid - 1] + values[mid]) / 2 
+            : values[mid];
+          aggregatedRow[col] = median;
+        } else {
+          aggregatedRow[col] = 0;
+        }
+      } else {
+        // Count unique values for non-numeric columns
+        const uniqueValues = new Set(group.map(row => row[col] || ''));
+        aggregatedRow[col] = uniqueValues.size;
+      }
+    });
+    
+    aggregated.push(aggregatedRow);
+  });
+  
+  return aggregated;
+}
+
 /* ---------- load primary CSV ---------- */
 function loadFirstTable(file){
   Papa.parse(file,{header:true,skipEmptyLines:true,complete(r){
@@ -1051,6 +1162,11 @@ function loadFirstTable(file){
     if(!rows.length){alert('Empty CSV');return;}
 
     currentKPIData = rows;
+    originalKPIData = rows;
+
+    // Update group by dropdown
+    const columns = Object.keys(rows[0] || {});
+    updateGroupByOptions(columns);
 
     const whitelist=[]; // (keep all real cols hidden by default)
     const hiddenCols=Object.keys(rows[0]).filter(k=>!whitelist.includes(k));
@@ -1238,6 +1354,200 @@ function loadFirstTable(file){
     updateDiffTable();
   }});
 }
+
+/* ---------- group by event listener ---------- */
+document.getElementById('group-by-select').addEventListener('change', function() {
+  const selectedColumn = this.value;
+  let groupedData = originalKPIData;
+  
+  if (selectedColumn) {
+    groupedData = groupDataByColumn(originalKPIData, selectedColumn);
+  }
+  
+  currentKPIData = groupedData;
+  
+  // Re-render the table with grouped data
+  const whitelist = [];
+  const hiddenCols = Object.keys(groupedData[0] || {}).filter(k => !whitelist.includes(k));
+  const cols = [];
+  
+  // Rebuild tile columns if we have the original structure
+  if (groupedData.length > 0 && groupedData[0].hasOwnProperty('Route/Leg')) {
+    /* Tile 1: Route Info */
+    cols.push({
+      title:'Route',data:null,orderable:false,
+      render:(d,t,row)=>{
+        const entity=row['Route/Leg Entity']||'';
+        const route=row['Route/Leg']||'';
+        const bucket=String(row['Bucket_percentile']||'').trim();
+        const [left,...rest]=String(entity).split('_');
+        const right=rest.join('_');
+        const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        
+        let bucketClass = 'bucket-other';
+        if(bucket.startsWith('1.')) bucketClass = 'bucket-1';
+        else if(bucket.startsWith('3.')) bucketClass = 'bucket-3';
+        
+        return `<div class="route-tile" onclick="onKPITileClick('${esc(route)}')">
+                  <div class="route-left">
+                    <div class="bucket-indicator ${bucketClass}">${esc(bucket)}</div>
+                    <div class="entity-value">${esc(left)}_${esc(right)}</div>
+                  </div>
+                  <div class="route-right">
+                    <div class="route-value">${esc(route)}</div>
+                  </div>
+                </div>`;
+      }
+    });
+
+    /* Tile 2: KPI Checks */
+    cols.push({
+      title:'KPI Checks',data:null,orderable:false,
+      render:(d,t,row)=>{
+        const checkStatus=v=>String(v).toUpperCase()==='KPI-MET'?'Pass':'Fail';
+        const paxStatus=checkStatus(row['Abs_Pax_Diff_check']);
+        const lfStatus=checkStatus(row['Abs_LF_Diff_check']);
+        const flStatus=checkStatus(row['Abs_Flow_Diff_check']);
+        
+        const paxClass = paxStatus === 'Pass' ? 'positive' : 'negative';
+        const lfClass = lfStatus === 'Pass' ? 'positive' : 'negative';
+        const flClass = flStatus === 'Pass' ? 'positive' : 'negative';
+        
+        return `<div class="kpi-checks-tile">
+                  <div class="kpi-check">
+                    <div class="kpi-label">Pax</div>
+                    <div class="kpi-status ${paxClass}">${paxStatus}</div>
+                  </div>
+                  <div class="kpi-check">
+                    <div class="kpi-label">LF</div>
+                    <div class="kpi-status ${lfClass}">${lfStatus}</div>
+                  </div>
+                  <div class="kpi-check">
+                    <div class="kpi-label">FL</div>
+                    <div class="kpi-status ${flClass}">${flStatus}</div>
+                  </div>
+                </div>`;
+      }
+    });
+
+    /* Tile 3: Pax/week */
+    cols.push({
+      title: 'Pax/week', data: null, orderable: false,
+      render: (data, type, row) => {
+        const pdd = parseFloat(row['PDD_Total_pax/week']) || 0;
+        const apm = parseFloat(row['APM_Total_pax/week']) || 0;
+        const diffPct = pdd ? ((apm - pdd) / pdd) * 100 : 0;
+        const pddDisp = (pdd).toFixed(0);
+        const apmDisp = (apm).toFixed(0);
+        const diffDisp = diffPct.toFixed(2);
+        
+        const diffClass = diffPct >= 0 ? 'positive' : 'negative';
+        
+        return `<div class="two-column-tile">
+                  <div class="values-column">
+                    <div class="pdd-value">${pddDisp}</div>
+                    <div class="apm-value">${apmDisp}</div>
+                  </div>
+                  <div class="diff-column">
+                    <div class="diff-value ${diffClass}">${diffDisp}%</div>
+                  </div>
+                </div>`;
+      }
+    });
+
+    /* Tile 4: Flow/week */
+    cols.push({
+      title:'Flow/week',data:null,orderable:false,
+      render:(d,t,row)=>{
+        const pdd=num(row['Flow_PDD_Pax/week']);
+        const apm=num(row['Flow_APM_Pax/week']);
+        const diff=pdd?((apm-pdd)/pdd)*100:0;
+        const diffClass = diff >= 0 ? 'positive' : 'negative';
+        
+        return `<div class="two-column-tile">
+                  <div class="values-column">
+                    <div class="pdd-value">${pdd.toLocaleString()}</div>
+                    <div class="apm-value">${apm.toLocaleString()}</div>
+                  </div>
+                  <div class="diff-column">
+                    <div class="diff-value ${diffClass}">${diff.toFixed(1)}%</div>
+                  </div>
+                </div>`;
+      }
+    });
+
+    /* Tile 5: Local/week */
+    cols.push({
+      title:'Local/week',data:null,orderable:false,
+      render:(d,t,row)=>{
+        const pdd=num(row['Local_PDD_Pax/week']);
+        const apm=num(row['Local_APM_Pax/week']);
+        const diff=pdd?((apm-pdd)/pdd)*100:0;
+        const diffClass = diff >= 0 ? 'positive' : 'negative';
+        
+        return `<div class="two-column-tile">
+                  <div class="values-column">
+                    <div class="pdd-value">${pdd.toLocaleString()}</div>
+                    <div class="apm-value">${apm.toLocaleString()}</div>
+                  </div>
+                  <div class="diff-column">
+                    <div class="diff-value ${diffClass}">${diff.toFixed(1)}%</div>
+                  </div>
+                </div>`;
+      }
+    });
+
+    /* Tile 6: Flow% */
+    cols.push({
+      title:'Flow%',data:null,orderable:false,
+      render:(d,t,row)=>{
+        const pdd = pct(row['Flow_PDD%']*100);
+        const apm = pct(row['Flow_APM%']*100);
+        const signed = apm - pdd;
+        const diff = Math.abs(signed);
+        const diffClass = signed >= 0 ? 'positive' : 'negative';
+        
+        return `<div class="two-column-tile">
+                  <div class="values-column">
+                    <div class="pdd-value">${pdd.toFixed(2)}%</div>
+                    <div class="apm-value">${apm.toFixed(2)}%</div>
+                  </div>
+                  <div class="diff-column">
+                    <div class="diff-value ${diffClass}">${diff.toFixed(2)}%</div>
+                  </div>
+                </div>`;
+      }
+    });
+
+    /* Tile 7: Load Factor */
+    cols.push({
+      title:'Load Factor',data:null,orderable:false,
+      render:(d,t,row)=>{
+        const pdd = pct(row['PLF_PDD%']*100);
+        const apm = pct(row['PLF_APM%']*100);
+        const diff = apm - pdd;
+        const diffClass = diff >= 0 ? 'positive' : 'negative';
+        
+        return `<div class="two-column-tile">
+                  <div class="values-column">
+                    <div class="pdd-value">${pdd.toFixed(2)}%</div>
+                    <div class="apm-value">${apm.toFixed(2)}%</div>
+                  </div>
+                  <div class="diff-column">
+                    <div class="diff-value ${diffClass}">${(Math.abs(diff)).toFixed(2)}%</div>
+                  </div>
+                </div>`;
+      }
+    });
+  }
+  
+  // Add real columns
+  Object.keys(groupedData[0] || {}).forEach(k=>{
+    cols.push({title:k,data:k});
+  });
+  
+  table1 = initTable('table1', groupedData, cols, hiddenCols, groupedData.length, true);
+});
 
 /* ---------- load previous KPI CSV ---------- */
 function loadPrevKPI(file){
